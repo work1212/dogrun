@@ -1,0 +1,1271 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ペットショップ活動管理システム</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Noto+Sans+JP:wght@300;400;500;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --primary: #FF6B9D;
+            --secondary: #FEC260;
+            --accent: #4ECDC4;
+            --dark: #2D3561;
+            --light: #F7F9FC;
+            --success: #46B881;
+            --warning: #FFA726;
+            --gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --gradient-warm: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --gradient-cool: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+        
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            background: var(--light);
+            color: var(--dark);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+        
+        .background-pattern {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0.03;
+            background-image: 
+                repeating-linear-gradient(45deg, transparent, transparent 35px, var(--dark) 35px, var(--dark) 70px),
+                repeating-linear-gradient(-45deg, transparent, transparent 35px, var(--dark) 35px, var(--dark) 70px);
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background: var(--gradient);
+            color: white;
+            padding: 30px 0;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            margin-bottom: 40px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        header::before {
+            content: '🐾';
+            position: absolute;
+            font-size: 200px;
+            right: -50px;
+            top: -80px;
+            opacity: 0.1;
+            transform: rotate(-15deg);
+        }
+        
+        h1 {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            font-size: 2.5em;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+        
+        .tabs {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .tab-btn {
+            background: rgba(255,255,255,0.2);
+            border: 2px solid rgba(255,255,255,0.4);
+            color: white;
+            padding: 12px 30px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+            font-family: 'Noto Sans JP', sans-serif;
+        }
+        
+        .tab-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+        }
+        
+        .tab-btn.active {
+            background: white;
+            color: var(--dark);
+            border-color: white;
+        }
+        
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 30px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+        
+        .card:hover {
+            box-shadow: 0 10px 40px rgba(0,0,0,0.12);
+            transform: translateY(-2px);
+        }
+        
+        .card h2 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .card h2::before {
+            content: '';
+            width: 5px;
+            height: 30px;
+            background: var(--gradient);
+            border-radius: 10px;
+        }
+        
+        .input-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .input-group {
+            position: relative;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--dark);
+            font-size: 0.95em;
+        }
+        
+        input[type="number"],
+        input[type="date"],
+        input[type="text"],
+        select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            font-family: 'Noto Sans JP', sans-serif;
+            background: var(--light);
+        }
+        
+        input:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: white;
+            box-shadow: 0 0 0 3px rgba(255, 107, 157, 0.1);
+        }
+        
+        .btn {
+            background: var(--gradient);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.1em;
+            font-weight: 600;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Outfit', sans-serif;
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(102, 126, 234, 0.5);
+        }
+        
+        .btn:active {
+            transform: translateY(-1px);
+        }
+        
+        .btn-secondary {
+            background: var(--gradient-warm);
+            box-shadow: 0 5px 20px rgba(240, 147, 251, 0.3);
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .stat-card {
+            background: var(--light);
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-3px);
+        }
+        
+        .stat-value {
+            font-size: 2.5em;
+            font-weight: 700;
+            font-family: 'Outfit', sans-serif;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .stat-label {
+            color: #666;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+        
+        .prediction-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 20px;
+            margin-top: 30px;
+        }
+        
+        .prediction-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .prediction-item {
+            text-align: center;
+        }
+        
+        .prediction-value {
+            font-size: 2em;
+            font-weight: 700;
+            font-family: 'Outfit', sans-serif;
+        }
+        
+        .prediction-label {
+            opacity: 0.9;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+        
+        .chart-container {
+            margin-top: 30px;
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        th {
+            background: var(--light);
+            font-weight: 600;
+            color: var(--dark);
+        }
+        
+        tr:hover {
+            background: var(--light);
+        }
+        
+        .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 10px;
+        }
+        
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .checkbox-item input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+        
+        .success-message {
+            background: var(--success);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+            animation: slideDown 0.3s ease;
+        }
+        
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .comparison-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        
+        .comparison-card {
+            background: var(--light);
+            padding: 20px;
+            border-radius: 15px;
+        }
+        
+        .comparison-title {
+            font-weight: 600;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+        }
+        
+        .trend {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+        
+        .trend.up {
+            background: rgba(70, 184, 129, 0.2);
+            color: var(--success);
+        }
+        
+        .trend.down {
+            background: rgba(255, 87, 87, 0.2);
+            color: #ff5757;
+        }
+        
+        .trend.neutral {
+            background: rgba(255, 167, 38, 0.2);
+            color: var(--warning);
+        }
+
+        @media (max-width: 768px) {
+            h1 { font-size: 1.8em; }
+            .input-grid { grid-template-columns: 1fr; }
+            .stats-grid { grid-template-columns: 1fr; }
+            .tabs { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+    <div class="background-pattern"></div>
+    
+    <header>
+        <div class="container">
+            <h1>🐾 ペットショップ活動管理システム</h1>
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('sales')">販売・サブスク管理</button>
+                <button class="tab-btn" onclick="switchTab('dogrun')">ドッグラン管理</button>
+            </div>
+        </div>
+    </header>
+    
+    <div class="container">
+        <!-- 販売・サブスク管理タブ -->
+        <div id="sales-tab" class="tab-content active">
+            <div class="card">
+                <h2>💾 データ管理</h2>
+                <p style="margin-bottom: 20px; color: #666;">データのバックアップやデバイス間の移行に使用できます</p>
+                <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                    <button class="btn" onclick="exportData('sales')" style="background: var(--gradient-cool);">📥 販売データをエクスポート</button>
+                    <button class="btn" onclick="document.getElementById('import-sales').click()" style="background: var(--gradient-warm);">📤 販売データをインポート</button>
+                    <input type="file" id="import-sales" accept=".json" style="display: none;" onchange="importData('sales', this)">
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2>📊 本日のデータ入力</h2>
+                <div id="sales-success" class="success-message">保存しました！</div>
+                <div class="input-grid">
+                    <div class="input-group">
+                        <label>日付</label>
+                        <input type="date" id="sales-date" required>
+                    </div>
+                    <div class="input-group">
+                        <label>来客数</label>
+                        <input type="number" id="visitors" placeholder="0" min="0">
+                    </div>
+                    <div class="input-group">
+                        <label>毎日抱っこ数</label>
+                        <input type="number" id="hugs" placeholder="0" min="0">
+                    </div>
+                    <div class="input-group">
+                        <label>見積り配布数</label>
+                        <input type="number" id="quotes" placeholder="0" min="0">
+                    </div>
+                    <div class="input-group">
+                        <label>契約数</label>
+                        <input type="number" id="contracts" placeholder="0" min="0">
+                    </div>
+                    <div class="input-group">
+                        <label>プレミアム加入数</label>
+                        <input type="number" id="premium" placeholder="0" min="0">
+                    </div>
+                </div>
+                <button class="btn" onclick="saveSalesData()">💾 保存する</button>
+            </div>
+            
+            <div class="card">
+                <h2>📈 今週の集計</h2>
+                <div class="stats-grid" id="weekly-stats">
+                    <div class="loading">データを読み込み中...</div>
+                </div>
+            </div>
+            
+            <div class="prediction-card">
+                <h2 style="color: white;">🔮 2週間後の予測</h2>
+                <p style="opacity: 0.9; margin-bottom: 20px;">今週の活動から算出される期待値</p>
+                <div class="prediction-grid" id="prediction-stats">
+                    <div class="loading">計算中...</div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2>📊 過去データとの比較</h2>
+                <div class="comparison-section" id="comparison-section">
+                    <div class="loading">データを読み込み中...</div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2>📋 入力履歴（直近10件）</h2>
+                <div id="sales-history">
+                    <div class="loading">データを読み込み中...</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- ドッグラン管理タブ -->
+        <div id="dogrun-tab" class="tab-content">
+            <div class="card">
+                <h2>💾 データ管理</h2>
+                <p style="margin-bottom: 20px; color: #666;">データのバックアップやデバイス間の移行に使用できます</p>
+                <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                    <button class="btn" onclick="exportData('dogrun')" style="background: var(--gradient-cool);">📥 ドッグランデータをエクスポート</button>
+                    <button class="btn" onclick="document.getElementById('import-dogrun').click()" style="background: var(--gradient-warm);">📤 ドッグランデータをインポート</button>
+                    <input type="file" id="import-dogrun" accept=".json" style="display: none;" onchange="importData('dogrun', this)">
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2>🐕 本日のドッグランデータ入力</h2>
+                <div id="dogrun-success" class="success-message">保存しました！</div>
+                <div class="input-grid">
+                    <div class="input-group">
+                        <label>日付</label>
+                        <input type="date" id="dogrun-date" required>
+                    </div>
+                    <div class="input-group">
+                        <label>利用家族数</label>
+                        <input type="number" id="families" placeholder="0" min="0">
+                    </div>
+                    <div class="input-group">
+                        <label>利用頭数（合計）</label>
+                        <input type="number" id="total-dogs" placeholder="0" min="0">
+                    </div>
+                    <div class="input-group">
+                        <label>天気</label>
+                        <select id="weather">
+                            <option value="">選択してください</option>
+                            <option value="晴れ">☀️ 晴れ</option>
+                            <option value="曇り">☁️ 曇り</option>
+                            <option value="雨">🌧️ 雨</option>
+                            <option value="雪">❄️ 雪</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label>気温 (°C)</label>
+                        <input type="number" id="temperature" placeholder="0" step="0.1">
+                    </div>
+                    <div class="input-group">
+                        <label>小型犬</label>
+                        <input type="number" id="small-dogs" placeholder="0" min="0">
+                    </div>
+                    <div class="input-group">
+                        <label>中型犬</label>
+                        <input type="number" id="medium-dogs" placeholder="0" min="0">
+                    </div>
+                    <div class="input-group">
+                        <label>大型犬</label>
+                        <input type="number" id="large-dogs" placeholder="0" min="0">
+                    </div>
+                    <div class="input-group">
+                        <label>新規会員数</label>
+                        <input type="number" id="new-members" placeholder="0" min="0">
+                    </div>
+                </div>
+                
+                <div class="input-group" style="margin-top: 20px;">
+                    <label>当店を知った理由（複数選択可）</label>
+                    <div class="checkbox-group">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="reason-sns" value="SNS">
+                            <label for="reason-sns">SNS</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="reason-passing" value="通りがかり">
+                            <label for="reason-passing">通りがかり</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="reason-referral" value="知人紹介">
+                            <label for="reason-referral">知人紹介</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="reason-web" value="Web検索">
+                            <label for="reason-web">Web検索</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="reason-other" value="その他">
+                            <label for="reason-other">その他</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <button class="btn btn-secondary" onclick="saveDogrunData()" style="margin-top: 20px;">💾 保存する</button>
+            </div>
+            
+            <div class="card">
+                <h2>📊 今週のドッグラン集計</h2>
+                <div class="stats-grid" id="dogrun-weekly-stats">
+                    <div class="loading">データを読み込み中...</div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2>🌤️ 天気と利用数の関連性</h2>
+                <div id="weather-analysis">
+                    <div class="loading">データを分析中...</div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2>📋 入力履歴（直近10件）</h2>
+                <div id="dogrun-history">
+                    <div class="loading">データを読み込み中...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 今日の日付を設定
+        document.getElementById('sales-date').valueAsDate = new Date();
+        document.getElementById('dogrun-date').valueAsDate = new Date();
+        
+        // ローカルストレージキー
+        const STORAGE_KEYS = {
+            sales: 'petshop_sales_data',
+            dogrun: 'petshop_dogrun_data'
+        };
+        
+        // ローカルストレージヘルパー関数
+        function saveToStorage(key, data) {
+            localStorage.setItem(key, JSON.stringify(data));
+        }
+        
+        function getFromStorage(key) {
+            const data = localStorage.getItem(key);
+            return data ? JSON.parse(data) : [];
+        }
+        
+        // タブ切り替え
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            if (tab === 'sales') {
+                document.querySelector('.tab-btn:nth-child(1)').classList.add('active');
+                document.getElementById('sales-tab').classList.add('active');
+                loadSalesData();
+            } else {
+                document.querySelector('.tab-btn:nth-child(2)').classList.add('active');
+                document.getElementById('dogrun-tab').classList.add('active');
+                loadDogrunData();
+            }
+        }
+        
+        // 販売データ保存
+        function saveSalesData() {
+            const data = {
+                date: document.getElementById('sales-date').value,
+                visitors: parseInt(document.getElementById('visitors').value) || 0,
+                hugs: parseInt(document.getElementById('hugs').value) || 0,
+                quotes: parseInt(document.getElementById('quotes').value) || 0,
+                contracts: parseInt(document.getElementById('contracts').value) || 0,
+                premium: parseInt(document.getElementById('premium').value) || 0,
+                timestamp: new Date().toISOString()
+            };
+            
+            if (!data.date) {
+                alert('日付を選択してください');
+                return;
+            }
+            
+            try {
+                // データをローカルストレージから取得
+                let allData = getFromStorage(STORAGE_KEYS.sales);
+                
+                // 同じ日付のデータがあれば更新、なければ追加
+                const existingIndex = allData.findIndex(item => item.date === data.date);
+                if (existingIndex >= 0) {
+                    allData[existingIndex] = data;
+                } else {
+                    allData.push(data);
+                }
+                
+                // 日付でソート（新しい順）
+                allData.sort((a, b) => new Date(b.date) - new Date(a.date));
+                
+                // ローカルストレージに保存
+                saveToStorage(STORAGE_KEYS.sales, allData);
+                
+                // 成功メッセージ表示
+                const successMsg = document.getElementById('sales-success');
+                successMsg.style.display = 'block';
+                setTimeout(() => successMsg.style.display = 'none', 3000);
+                
+                // データを再読み込み
+                loadSalesData();
+                
+                // フォームをクリア
+                document.getElementById('visitors').value = '';
+                document.getElementById('hugs').value = '';
+                document.getElementById('quotes').value = '';
+                document.getElementById('contracts').value = '';
+                document.getElementById('premium').value = '';
+                
+            } catch (error) {
+                console.error('保存エラー:', error);
+                alert('データの保存に失敗しました。もう一度お試しください。');
+            }
+        }
+        
+        // 販売データ読み込み
+        function loadSalesData() {
+            try {
+                const allData = getFromStorage(STORAGE_KEYS.sales);
+                
+                // 今週の集計
+                displayWeeklyStats(allData);
+                
+                // 予測表示
+                displayPrediction(allData);
+                
+                // 比較表示
+                displayComparison(allData);
+                
+                // 履歴表示
+                displaySalesHistory(allData);
+                
+            } catch (error) {
+                console.error('読み込みエラー:', error);
+                document.getElementById('weekly-stats').innerHTML = '<p style="color: #999;">データの読み込みに失敗しました</p>';
+                document.getElementById('prediction-stats').innerHTML = '<p style="opacity: 0.8;">データの読み込みに失敗しました</p>';
+                document.getElementById('comparison-section').innerHTML = '<p style="color: #999;">データの読み込みに失敗しました</p>';
+                document.getElementById('sales-history').innerHTML = '<p style="color: #999;">データの読み込みに失敗しました</p>';
+            }
+        }
+        
+        // 今週の集計表示
+        function displayWeeklyStats(data) {
+            const today = new Date();
+            const weekAgo = new Date(today);
+            weekAgo.setDate(today.getDate() - 7);
+            
+            const weekData = data.filter(item => {
+                const itemDate = new Date(item.date);
+                return itemDate >= weekAgo && itemDate <= today;
+            });
+            
+            if (weekData.length === 0) {
+                document.getElementById('weekly-stats').innerHTML = '<div class="stat-card" style="grid-column: 1/-1;"><p style="color: #999; text-align: center;">まだデータがありません。上のフォームから入力してください。</p></div>';
+                return;
+            }
+            
+            const totals = weekData.reduce((acc, item) => ({
+                visitors: acc.visitors + item.visitors,
+                hugs: acc.hugs + item.hugs,
+                quotes: acc.quotes + item.quotes,
+                contracts: acc.contracts + item.contracts,
+                premium: acc.premium + item.premium
+            }), { visitors: 0, hugs: 0, quotes: 0, contracts: 0, premium: 0 });
+            
+            document.getElementById('weekly-stats').innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-value">${totals.visitors}</div>
+                    <div class="stat-label">来客数</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${totals.hugs}</div>
+                    <div class="stat-label">抱っこ数</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${totals.quotes}</div>
+                    <div class="stat-label">見積り配布数</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${totals.contracts}</div>
+                    <div class="stat-label">契約数</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${totals.premium}</div>
+                    <div class="stat-label">プレミアム加入</div>
+                </div>
+            `;
+        }
+        
+        // 2週間後の予測表示
+        function displayPrediction(data) {
+            if (data.length === 0) {
+                document.getElementById('prediction-stats').innerHTML = '<p style="opacity: 0.8;">データが蓄積されると予測が表示されます</p>';
+                return;
+            }
+            
+            const today = new Date();
+            const weekAgo = new Date(today);
+            weekAgo.setDate(today.getDate() - 7);
+            
+            const weekData = data.filter(item => {
+                const itemDate = new Date(item.date);
+                return itemDate >= weekAgo && itemDate <= today;
+            });
+            
+            if (weekData.length === 0) {
+                document.getElementById('prediction-stats').innerHTML = '<p style="opacity: 0.8;">過去7日間のデータがありません</p>';
+                return;
+            }
+            
+            // 実データから変換率を計算
+            const totals = weekData.reduce((acc, item) => ({
+                visitors: acc.visitors + item.visitors,
+                hugs: acc.hugs + item.hugs,
+                quotes: acc.quotes + item.quotes,
+                contracts: acc.contracts + item.contracts,
+                premium: acc.premium + item.premium
+            }), { visitors: 0, hugs: 0, quotes: 0, contracts: 0, premium: 0 });
+            
+            // 変換率計算（実データがあればそれを使用、なければ標準値）
+            const hugRate = totals.visitors > 0 ? totals.hugs / totals.visitors : 0.35;
+            const quoteRate = totals.hugs > 0 ? totals.quotes / totals.hugs : 0.55;
+            const contractRate = totals.quotes > 0 ? totals.contracts / totals.quotes : 0.25;
+            const premiumRate = totals.contracts > 0 ? totals.premium / totals.contracts : 0.15;
+            
+            // 2週間後の予測（今週の活動が2週間後に結果として出る）
+            const predictedContracts = Math.round(totals.quotes * contractRate);
+            const predictedPremium = Math.round(totals.contracts * premiumRate);
+            const predictedRevenue = predictedContracts * 150000 + predictedPremium * 5000; // 仮の単価
+            
+            document.getElementById('prediction-stats').innerHTML = `
+                <div class="prediction-item">
+                    <div class="prediction-value">${predictedContracts}</div>
+                    <div class="prediction-label">契約見込み</div>
+                </div>
+                <div class="prediction-item">
+                    <div class="prediction-value">${predictedPremium}</div>
+                    <div class="prediction-label">プレミアム見込み</div>
+                </div>
+                <div class="prediction-item">
+                    <div class="prediction-value">${Math.round(contractRate * 100)}%</div>
+                    <div class="prediction-label">契約率</div>
+                </div>
+                <div class="prediction-item">
+                    <div class="prediction-value">${Math.round(premiumRate * 100)}%</div>
+                    <div class="prediction-label">プレミアム率</div>
+                </div>
+            `;
+        }
+        
+        // 過去データとの比較
+        function displayComparison(data) {
+            if (data.length === 0) {
+                document.getElementById('comparison-section').innerHTML = '<p style="color: #999;">データがまだありません</p>';
+                return;
+            }
+            
+            const today = new Date();
+            const thisWeekStart = new Date(today);
+            thisWeekStart.setDate(today.getDate() - 7);
+            
+            const lastWeekStart = new Date(thisWeekStart);
+            lastWeekStart.setDate(lastWeekStart.getDate() - 7);
+            
+            const thisWeek = data.filter(item => {
+                const itemDate = new Date(item.date);
+                return itemDate >= thisWeekStart && itemDate <= today;
+            });
+            
+            const lastWeek = data.filter(item => {
+                const itemDate = new Date(item.date);
+                return itemDate >= lastWeekStart && itemDate < thisWeekStart;
+            });
+            
+            if (thisWeek.length === 0) {
+                document.getElementById('comparison-section').innerHTML = '<p style="color: #999;">今週のデータがまだありません</p>';
+                return;
+            }
+            
+            if (lastWeek.length === 0) {
+                document.getElementById('comparison-section').innerHTML = '<p style="color: #999;">比較データがまだありません（2週間以上のデータが必要です）</p>';
+                return;
+            }
+            
+            const thisWeekTotals = thisWeek.reduce((acc, item) => ({
+                visitors: acc.visitors + item.visitors,
+                contracts: acc.contracts + item.contracts,
+                premium: acc.premium + item.premium
+            }), { visitors: 0, contracts: 0, premium: 0 });
+            
+            const lastWeekTotals = lastWeek.reduce((acc, item) => ({
+                visitors: acc.visitors + item.visitors,
+                contracts: acc.contracts + item.contracts,
+                premium: acc.premium + item.premium
+            }), { visitors: 0, contracts: 0, premium: 0 });
+            
+            function getTrend(current, previous) {
+                if (previous === 0) return { class: 'neutral', text: '初回' };
+                const diff = ((current - previous) / previous * 100).toFixed(1);
+                if (diff > 0) return { class: 'up', text: `+${diff}%` };
+                if (diff < 0) return { class: 'down', text: `${diff}%` };
+                return { class: 'neutral', text: '±0%' };
+            }
+            
+            const visitorsTrend = getTrend(thisWeekTotals.visitors, lastWeekTotals.visitors);
+            const contractsTrend = getTrend(thisWeekTotals.contracts, lastWeekTotals.contracts);
+            const premiumTrend = getTrend(thisWeekTotals.premium, lastWeekTotals.premium);
+            
+            document.getElementById('comparison-section').innerHTML = `
+                <div class="comparison-card">
+                    <div class="comparison-title">来客数</div>
+                    <div style="font-size: 1.5em; font-weight: 700;">${thisWeekTotals.visitors}</div>
+                    <span class="trend ${visitorsTrend.class}">${visitorsTrend.text}</span>
+                    <div style="margin-top: 10px; color: #999; font-size: 0.9em;">先週: ${lastWeekTotals.visitors}</div>
+                </div>
+                <div class="comparison-card">
+                    <div class="comparison-title">契約数</div>
+                    <div style="font-size: 1.5em; font-weight: 700;">${thisWeekTotals.contracts}</div>
+                    <span class="trend ${contractsTrend.class}">${contractsTrend.text}</span>
+                    <div style="margin-top: 10px; color: #999; font-size: 0.9em;">先週: ${lastWeekTotals.contracts}</div>
+                </div>
+                <div class="comparison-card">
+                    <div class="comparison-title">プレミアム加入</div>
+                    <div style="font-size: 1.5em; font-weight: 700;">${thisWeekTotals.premium}</div>
+                    <span class="trend ${premiumTrend.class}">${premiumTrend.text}</span>
+                    <div style="margin-top: 10px; color: #999; font-size: 0.9em;">先週: ${lastWeekTotals.premium}</div>
+                </div>
+            `;
+        }
+        
+        // 履歴表示
+        function displaySalesHistory(data) {
+            if (data.length === 0) {
+                document.getElementById('sales-history').innerHTML = '<p style="color: #999;">データがまだありません</p>';
+                return;
+            }
+            
+            const recent = data.slice(0, 10);
+            const html = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>日付</th>
+                            <th>来客数</th>
+                            <th>抱っこ数</th>
+                            <th>見積り</th>
+                            <th>契約</th>
+                            <th>プレミアム</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${recent.map(item => `
+                            <tr>
+                                <td>${item.date}</td>
+                                <td>${item.visitors}</td>
+                                <td>${item.hugs}</td>
+                                <td>${item.quotes}</td>
+                                <td>${item.contracts}</td>
+                                <td>${item.premium}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+            document.getElementById('sales-history').innerHTML = html;
+        }
+        
+        // ドッグランデータ保存
+        function saveDogrunData() {
+            const reasons = [];
+            document.querySelectorAll('.checkbox-item input[type="checkbox"]:checked').forEach(cb => {
+                reasons.push(cb.value);
+            });
+            
+            const data = {
+                date: document.getElementById('dogrun-date').value,
+                families: parseInt(document.getElementById('families').value) || 0,
+                totalDogs: parseInt(document.getElementById('total-dogs').value) || 0,
+                weather: document.getElementById('weather').value,
+                temperature: parseFloat(document.getElementById('temperature').value) || 0,
+                smallDogs: parseInt(document.getElementById('small-dogs').value) || 0,
+                mediumDogs: parseInt(document.getElementById('medium-dogs').value) || 0,
+                largeDogs: parseInt(document.getElementById('large-dogs').value) || 0,
+                newMembers: parseInt(document.getElementById('new-members').value) || 0,
+                reasons: reasons,
+                timestamp: new Date().toISOString()
+            };
+            
+            if (!data.date) {
+                alert('日付を選択してください');
+                return;
+            }
+            
+            try {
+                // データをローカルストレージから取得
+                let allData = getFromStorage(STORAGE_KEYS.dogrun);
+                
+                const existingIndex = allData.findIndex(item => item.date === data.date);
+                if (existingIndex >= 0) {
+                    allData[existingIndex] = data;
+                } else {
+                    allData.push(data);
+                }
+                
+                allData.sort((a, b) => new Date(b.date) - new Date(a.date));
+                
+                // ローカルストレージに保存
+                saveToStorage(STORAGE_KEYS.dogrun, allData);
+                
+                const successMsg = document.getElementById('dogrun-success');
+                successMsg.style.display = 'block';
+                setTimeout(() => successMsg.style.display = 'none', 3000);
+                
+                loadDogrunData();
+                
+                // フォームをクリア
+                document.getElementById('families').value = '';
+                document.getElementById('total-dogs').value = '';
+                document.getElementById('weather').value = '';
+                document.getElementById('temperature').value = '';
+                document.getElementById('small-dogs').value = '';
+                document.getElementById('medium-dogs').value = '';
+                document.getElementById('large-dogs').value = '';
+                document.getElementById('new-members').value = '';
+                document.querySelectorAll('.checkbox-item input[type="checkbox"]').forEach(cb => cb.checked = false);
+                
+            } catch (error) {
+                console.error('保存エラー:', error);
+                alert('データの保存に失敗しました。もう一度お試しください。');
+            }
+        }
+        
+        // ドッグランデータ読み込み
+        function loadDogrunData() {
+            try {
+                const allData = getFromStorage(STORAGE_KEYS.dogrun);
+                
+                displayDogrunWeeklyStats(allData);
+                displayWeatherAnalysis(allData);
+                displayDogrunHistory(allData);
+                
+            } catch (error) {
+                console.error('読み込みエラー:', error);
+                document.getElementById('dogrun-weekly-stats').innerHTML = '<p style="color: #999;">データの読み込みに失敗しました</p>';
+                document.getElementById('weather-analysis').innerHTML = '<p style="color: #999;">データの読み込みに失敗しました</p>';
+                document.getElementById('dogrun-history').innerHTML = '<p style="color: #999;">データの読み込みに失敗しました</p>';
+            }
+        }
+        
+        // ドッグラン週間集計
+        function displayDogrunWeeklyStats(data) {
+            const today = new Date();
+            const weekAgo = new Date(today);
+            weekAgo.setDate(today.getDate() - 7);
+            
+            const weekData = data.filter(item => {
+                const itemDate = new Date(item.date);
+                return itemDate >= weekAgo && itemDate <= today;
+            });
+            
+            if (weekData.length === 0) {
+                document.getElementById('dogrun-weekly-stats').innerHTML = '<div class="stat-card" style="grid-column: 1/-1;"><p style="color: #999; text-align: center;">まだデータがありません。上のフォームから入力してください。</p></div>';
+                return;
+            }
+            
+            const totals = weekData.reduce((acc, item) => ({
+                families: acc.families + item.families,
+                totalDogs: acc.totalDogs + item.totalDogs,
+                newMembers: acc.newMembers + item.newMembers,
+                smallDogs: acc.smallDogs + item.smallDogs,
+                mediumDogs: acc.mediumDogs + item.mediumDogs,
+                largeDogs: acc.largeDogs + item.largeDogs
+            }), { families: 0, totalDogs: 0, newMembers: 0, smallDogs: 0, mediumDogs: 0, largeDogs: 0 });
+            
+            document.getElementById('dogrun-weekly-stats').innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-value">${totals.families}</div>
+                    <div class="stat-label">利用家族数</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${totals.totalDogs}</div>
+                    <div class="stat-label">利用頭数</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${totals.smallDogs}</div>
+                    <div class="stat-label">小型犬</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${totals.mediumDogs}</div>
+                    <div class="stat-label">中型犬</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${totals.largeDogs}</div>
+                    <div class="stat-label">大型犬</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${totals.newMembers}</div>
+                    <div class="stat-label">新規会員</div>
+                </div>
+            `;
+        }
+        
+        // 天気と利用数の分析
+        function displayWeatherAnalysis(data) {
+            if (data.length === 0) {
+                document.getElementById('weather-analysis').innerHTML = '<p style="color: #999;">データがまだありません</p>';
+                return;
+            }
+            
+            const weatherStats = {};
+            data.forEach(item => {
+                if (!weatherStats[item.weather]) {
+                    weatherStats[item.weather] = { count: 0, totalFamilies: 0, totalDogs: 0 };
+                }
+                weatherStats[item.weather].count++;
+                weatherStats[item.weather].totalFamilies += item.families;
+                weatherStats[item.weather].totalDogs += item.totalDogs;
+            });
+            
+            let html = '<div class="stats-grid">';
+            for (const [weather, stats] of Object.entries(weatherStats)) {
+                const avgFamilies = (stats.totalFamilies / stats.count).toFixed(1);
+                const avgDogs = (stats.totalDogs / stats.count).toFixed(1);
+                html += `
+                    <div class="stat-card">
+                        <div style="font-size: 2em; margin-bottom: 10px;">${weather}</div>
+                        <div style="font-size: 1.3em; font-weight: 600;">平均 ${avgFamilies} 家族</div>
+                        <div style="color: #999; font-size: 0.9em; margin-top: 5px;">${avgDogs} 頭 / ${stats.count} 日間</div>
+                    </div>
+                `;
+            }
+            html += '</div>';
+            document.getElementById('weather-analysis').innerHTML = html;
+        }
+        
+        // ドッグラン履歴
+        function displayDogrunHistory(data) {
+            if (data.length === 0) {
+                document.getElementById('dogrun-history').innerHTML = '<p style="color: #999;">データがまだありません</p>';
+                return;
+            }
+            
+            const recent = data.slice(0, 10);
+            const html = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>日付</th>
+                            <th>家族数</th>
+                            <th>頭数</th>
+                            <th>天気</th>
+                            <th>気温</th>
+                            <th>新規会員</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${recent.map(item => `
+                            <tr>
+                                <td>${item.date}</td>
+                                <td>${item.families}</td>
+                                <td>${item.totalDogs}</td>
+                                <td>${item.weather}</td>
+                                <td>${item.temperature}°C</td>
+                                <td>${item.newMembers}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+            document.getElementById('dogrun-history').innerHTML = html;
+        }
+        
+        // 初期読み込み
+        loadSalesData();
+        
+        // データエクスポート機能
+        function exportData(type) {
+            try {
+                const key = type === 'sales' ? STORAGE_KEYS.sales : STORAGE_KEYS.dogrun;
+                const data = getFromStorage(key);
+                
+                if (data.length === 0) {
+                    alert('エクスポートするデータがありません');
+                    return;
+                }
+                
+                // JSONファイルとしてダウンロード
+                const dataStr = JSON.stringify(data, null, 2);
+                const dataBlob = new Blob([dataStr], { type: 'application/json' });
+                const url = URL.createObjectURL(dataBlob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `petshop_${type}_data_${new Date().toISOString().split('T')[0]}.json`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+                
+                alert(`データをエクスポートしました！\n${data.length}件のデータが保存されました。`);
+            } catch (error) {
+                console.error('エクスポートエラー:', error);
+                alert('データのエクスポートに失敗しました');
+            }
+        }
+        
+        // データインポート機能
+        function importData(type, input) {
+            const file = input.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    
+                    if (!Array.isArray(importedData)) {
+                        alert('無効なデータ形式です');
+                        return;
+                    }
+                    
+                    const key = type === 'sales' ? STORAGE_KEYS.sales : STORAGE_KEYS.dogrun;
+                    const existingData = getFromStorage(key);
+                    
+                    // 確認ダイアログ
+                    const message = existingData.length > 0 
+                        ? `現在のデータ（${existingData.length}件）に、インポートするデータ（${importedData.length}件）を追加しますか？\n※同じ日付のデータは上書きされます`
+                        : `${importedData.length}件のデータをインポートしますか？`;
+                    
+                    if (!confirm(message)) {
+                        input.value = '';
+                        return;
+                    }
+                    
+                    // データをマージ（同じ日付は上書き）
+                    const mergedData = [...existingData];
+                    importedData.forEach(newItem => {
+                        const existingIndex = mergedData.findIndex(item => item.date === newItem.date);
+                        if (existingIndex >= 0) {
+                            mergedData[existingIndex] = newItem;
+                        } else {
+                            mergedData.push(newItem);
+                        }
+                    });
+                    
+                    // 日付でソート
+                    mergedData.sort((a, b) => new Date(b.date) - new Date(a.date));
+                    
+                    // 保存
+                    saveToStorage(key, mergedData);
+                    
+                    // 画面を更新
+                    if (type === 'sales') {
+                        loadSalesData();
+                    } else {
+                        loadDogrunData();
+                    }
+                    
+                    alert(`データのインポートが完了しました！\n合計: ${mergedData.length}件`);
+                    
+                } catch (error) {
+                    console.error('インポートエラー:', error);
+                    alert('データのインポートに失敗しました。正しいファイルを選択してください。');
+                }
+                
+                // ファイル選択をリセット
+                input.value = '';
+            };
+            
+            reader.readAsText(file);
+        }
+    </script>
+</body>
+</html>
