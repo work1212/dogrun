@@ -1267,5 +1267,13 @@
             reader.readAsText(file);
         }
     </script>
+    <script>
+async function sendToSheet(data) {
+  await fetch("https://script.google.com/macros/s/AKfycbyGh5Z6OLX-ZZmqgHwvvEDk8fSQxEQflD3FtVXKe4Bzcwf6WeHARM5_f3HMM-0nBOMI2Q/exec", {
+    method: "POST",
+    body: JSON.stringify(data)
+  });
+}
+</script>
 </body>
 </html>
