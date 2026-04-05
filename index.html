@@ -1,644 +1,276 @@
-import { useState, useEffect } from “react”;
-
-const STORAGE_KEYS = {
-SALES: “petshop_sales_v2”,
-DOGRUN: “petshop_dogrun_v2”,
-STAFF: “petshop_staff_v2”,
-};
-
-const DEFAULT_STAFF = [“スタッフA”, “スタッフB”, “スタッフC”, “スタッフD”, “スタッフE”];
-
-const WEATHER_OPTIONS = [“晴れ ”, “曇り ”, “雨 ”, “雪 ”];
-const KNOWN_BY_OPTIONS = [“SNS”, “通りがかり”, “紹介”, “チラシ”, “リピート”, “その他”];
-
-const today = () => new Date().toISOString().split(“T”)[0];
-const formatDate = (d) => d.replace(/-/g, “/”);
-const getWeek = (dateStr) => {
-const d = new Date(dateStr);
-const jan1 = new Date(d.getFullYear(), 0, 1);
-return Math.ceil(((d - jan1) / 86400000 + jan1.getDay() + 1) / 7);
-};
-const getMonth = (dateStr) => dateStr.slice(0, 7);
-
-// ─── Storage helpers ───────────────────────────────────────────────
-async function loadData(key) {
-try {
-const r = await window.storage.get(key);
-return r ? JSON.parse(r.value) : null;
-} catch { return null; }
-}
-async function saveData(key, value) {
-try { await window.storage.set(key, JSON.stringify(value)); } catch {}
-}
-
-// ─── Colour palette ───────────────────────────────────────────────
-const C = {
-bg: “#0f1117”,
-card: “#181c27”,
-cardBorder: “#252a3a”,
-accent: “#6c8ef5”,
-accent2: “#f5a623”,
-dogrun: “#3ecf8e”,
-text: “#e8eaf6”,
-muted: “#7b82a0”,
-danger: “#f56c6c”,
-success: “#52c41a”,
-};
-
-const css = `@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Space+Grotesk:wght@500;700&display=swap'); *{box-sizing:border-box;margin:0;padding:0} body{background:${C.bg};color:${C.text};font-family:'Noto Sans JP',sans-serif;min-height:100vh} .app{max-width:480px;margin:0 auto;padding:0 0 80px} .header{background:linear-gradient(135deg,#1a1f35 0%,#252a45 100%);padding:20px 20px 16px;border-bottom:1px solid ${C.cardBorder};position:sticky;top:0;z-index:100} .header-title{font-family:'Space Grotesk',sans-serif;font-size:18px;font-weight:700;color:${C.text};display:flex;align-items:center;gap:8px} .tab-bar{display:flex;gap:0;background:${C.card};border-bottom:1px solid ${C.cardBorder};position:sticky;top:61px;z-index:99} .tab{flex:1;padding:12px 4px;text-align:center;font-size:12px;font-weight:500;color:${C.muted};cursor:pointer;border-bottom:2px solid transparent;transition:all .2s} .tab.active{color:${C.accent};border-bottom-color:${C.accent}} .tab.dogrun-tab.active{color:${C.dogrun};border-bottom-color:${C.dogrun}} .section{padding:16px} .card{background:${C.card};border:1px solid ${C.cardBorder};border-radius:14px;padding:16px;margin-bottom:14px} .card-title{font-size:14px;font-weight:700;color:${C.text};margin-bottom:14px;display:flex;align-items:center;gap:6px} .field-label{font-size:12px;color:${C.muted};margin-bottom:6px;font-weight:500} .input{width:100%;background:#1e2333;border:1px solid ${C.cardBorder};border-radius:8px;padding:10px 12px;color:${C.text};font-size:14px;font-family:'Noto Sans JP',sans-serif;outline:none;transition:border-color .2s} .input:focus{border-color:${C.accent}} .select{width:100%;background:#1e2333;border:1px solid ${C.cardBorder};border-radius:8px;padding:10px 12px;color:${C.text};font-size:14px;font-family:'Noto Sans JP',sans-serif;outline:none;-webkit-appearance:none} .field-group{margin-bottom:12px} .btn{width:100%;padding:12px;border-radius:10px;border:none;font-size:14px;font-weight:700;font-family:'Noto Sans JP',sans-serif;cursor:pointer;transition:opacity .15s} .btn-primary{background:linear-gradient(135deg,${C.accent},#8b6cf7);color:#fff} .btn-dogrun{background:linear-gradient(135deg,${C.dogrun},#26a671);color:#fff} .btn-export{background:linear-gradient(135deg,#06b6d4,#3b82f6);color:#fff;margin-bottom:8px} .btn-danger{background:linear-gradient(135deg,${C.danger},#c0392b);color:#fff} .btn:active{opacity:.75} .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px} .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px} .stat-box{background:#1e2333;border-radius:10px;padding:12px;text-align:center} .stat-val{font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:700;color:${C.accent}} .stat-val.green{color:${C.dogrun}} .stat-label{font-size:10px;color:${C.muted};margin-top:2px} .predict-box{background:linear-gradient(135deg,#1a2040,#252a55);border:1px solid #3a4070;border-radius:12px;padding:14px;margin-bottom:10px} .predict-title{font-size:12px;color:#8b9de8;margin-bottom:8px} .predict-val{font-family:'Space Grotesk',sans-serif;font-size:28px;font-weight:700;color:${C.accent}} .predict-sub{font-size:11px;color:${C.muted};margin-top:4px} .staff-row{display:flex;align-items:center;gap:8px;background:#1e2333;border-radius:8px;padding:10px;margin-bottom:8px} .staff-name{font-size:13px;font-weight:500;color:${C.text};min-width:70px;flex-shrink:0} .staff-inputs{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;flex:1} .mini-input{background:#252a3a;border:1px solid ${C.cardBorder};border-radius:6px;padding:6px 4px;color:${C.text};font-size:12px;font-family:'Noto Sans JP',sans-serif;outline:none;text-align:center;width:100%} .mini-input:focus{border-color:${C.accent}} .mini-label{font-size:9px;color:${C.muted};text-align:center;margin-bottom:3px} .history-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid ${C.cardBorder};font-size:13px} .history-row:last-child{border-bottom:none} .tag{display:inline-block;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:500} .tag-blue{background:#1e3a5f;color:#6bb3f5} .tag-green{background:#1a3d2e;color:#4dd4a0} .month-header{background:#1e2333;border-radius:8px;padding:10px 12px;margin-bottom:8px;font-size:13px;font-weight:700;color:${C.accent};display:flex;justify-content:space-between;align-items:center;cursor:pointer} .checkbox-group{display:flex;flex-wrap:wrap;gap:8px} .checkbox-item{display:flex;align-items:center;gap:4px;font-size:12px;color:${C.muted};cursor:pointer} .checkbox-item input{accent-color:${C.dogrun}} .alert{background:#1a2a1a;border:1px solid #2d5a2d;border-radius:8px;padding:10px 12px;font-size:12px;color:${C.dogrun};margin-bottom:10px} .alert-warn{background:#2a1a1a;border:1px solid #5a2d2d;color:${C.danger}} .staff-header{display:grid;grid-template-columns:70px repeat(7,1fr);gap:4px;margin-bottom:4px} .staff-total-row{display:grid;grid-template-columns:70px repeat(7,1fr);gap:4px;background:#252a3a;border-radius:8px;padding:8px 10px;margin-top:4px} .total-cell{font-size:12px;font-weight:700;color:${C.accent2};text-align:center} .week-block{border-left:3px solid ${C.dogrun};padding-left:12px;margin-bottom:12px} .week-title{font-size:12px;color:${C.dogrun};font-weight:700;margin-bottom:6px} .scroll-x{overflow-x:auto;-webkit-overflow-scrolling:touch}`;
-
-const STAFF_FIELDS = [“声かけ”,“抱っこ”,“見積”,“契約”,“口コミ”,“プレミ”,“来客”];
-const STAFF_FIELD_KEYS = [“voice”,“hold”,“estimate”,“contract”,“review”,“premium”,“visitor”];
-
-export default function App() {
-const [tab, setTab] = useState(“sales”);
-const [subTab, setSubTab] = useState(“input”); // input | week | month | predict | settings
-const [dogSubTab, setDogSubTab] = useState(“input”); // input | week | month
-
-const [staff, setStaff] = useState(DEFAULT_STAFF);
-const [staffInput, setStaffInput] = useState(DEFAULT_STAFF.join(”\n”));
-
-// Sales data: { [date]: { store: {visitor,voiceAll,holdAll,…}, staff: { [name]: {voice,hold,…} } } }
-const [salesData, setSalesData] = useState({});
-// Dogrun data: { [date]: { families, dogs, weather, temp, small, medium, large, members, knownBy:[], notes } }
-const [dogData, setDogData] = useState({});
-
-// Today’s sales input
-const [saleDate, setSaleDate] = useState(today());
-const [storeRow, setStoreRow] = useState({ visitor: 0, voiceAll: 0, holdAll: 0, estimate: 0, contract: 0, review: 0, premium: 0 });
-const [staffRows, setStaffRows] = useState({});
-
-// Today’s dogrun input
-const [dogDate, setDogDate] = useState(today());
-const [dogRow, setDogRow] = useState({ families: 0, dogs: 0, weather: “”, temp: 0, small: 0, medium: 0, large: 0, members: 0, knownBy: [], notes: “” });
-
-const [monthExpanded, setMonthExpanded] = useState({});
-
-useEffect(() => {
-(async () => {
-const s = await loadData(STORAGE_KEYS.SALES);
-const d = await loadData(STORAGE_KEYS.DOGRUN);
-const st = await loadData(STORAGE_KEYS.STAFF);
-if (s) setSalesData(s);
-if (d) setDogData(d);
-if (st) { setStaff(st); setStaffInput(st.join(”\n”)); }
-})();
-}, []);
-
-// init staffRows when staff or date changes
-useEffect(() => {
-const existing = salesData[saleDate]?.staff || {};
-const rows = {};
-staff.forEach(n => {
-rows[n] = existing[n] || { voice: 0, hold: 0, estimate: 0, contract: 0, review: 0, premium: 0, visitor: 0 };
-});
-setStaffRows(rows);
-const st = salesData[saleDate]?.store || { visitor: 0, voiceAll: 0, holdAll: 0, estimate: 0, contract: 0, review: 0, premium: 0 };
-setStoreRow(st);
-}, [saleDate, staff, salesData]);
-
-useEffect(() => {
-const existing = dogData[dogDate] || { families: 0, dogs: 0, weather: “”, temp: 0, small: 0, medium: 0, large: 0, members: 0, knownBy: [], notes: “” };
-setDogRow(existing);
-}, [dogDate, dogData]);
-
-// ── Save sales ──
-const saveSales = async () => {
-const updated = {
-…salesData,
-[saleDate]: { store: storeRow, staff: staffRows }
-};
-setSalesData(updated);
-await saveData(STORAGE_KEYS.SALES, updated);
-alert(“保存しました！”);
-};
-
-// ── Save dogrun ──
-const saveDog = async () => {
-const updated = { …dogData, [dogDate]: dogRow };
-setDogData(updated);
-await saveData(STORAGE_KEYS.DOGRUN, updated);
-alert(“保存しました！”);
-};
-
-// ── Save staff settings ──
-const saveStaff = async () => {
-const list = staffInput.split(”\n”).map(s => s.trim()).filter(Boolean).slice(0, 10);
-setStaff(list);
-await saveData(STORAGE_KEYS.STAFF, list);
-alert(“スタッフを保存しました！”);
-};
-
-// ── Aggregation helpers ──
-const salesByMonth = () => {
-const m = {};
-Object.entries(salesData).forEach(([date, v]) => {
-const mo = getMonth(date);
-if (!m[mo]) m[mo] = { visitor: 0, voiceAll: 0, holdAll: 0, estimate: 0, contract: 0, review: 0, premium: 0, days: 0 };
-const s = v.store || {};
-Object.keys(m[mo]).forEach(k => { if (k !== “days”) m[mo][k] += (s[k] || 0); });
-m[mo].days++;
-});
-return m;
-};
-
-const salesByWeek = () => {
-const w = {};
-Object.entries(salesData).forEach(([date, v]) => {
-const wk = `${date.slice(0, 4)}-W${String(getWeek(date)).padStart(2, "0")}`;
-if (!w[wk]) w[wk] = { visitor: 0, voiceAll: 0, holdAll: 0, estimate: 0, contract: 0, review: 0, premium: 0, days: 0 };
-const s = v.store || {};
-Object.keys(w[wk]).forEach(k => { if (k !== “days”) w[wk][k] += (s[k] || 0); });
-w[wk].days++;
-});
-return w;
-};
-
-const staffByMonth = (monthStr) => {
-const result = {};
-staff.forEach(n => {
-result[n] = { voice: 0, hold: 0, estimate: 0, contract: 0, review: 0, premium: 0, visitor: 0 };
-});
-Object.entries(salesData).filter(([d]) => getMonth(d) === monthStr).forEach(([, v]) => {
-const sr = v.staff || {};
-staff.forEach(n => {
-if (sr[n]) STAFF_FIELD_KEYS.forEach(k => { result[n][k] += (sr[n][k] || 0); });
-});
-});
-return result;
-};
-
-// 2週間後予測
-const predict2weeks = () => {
-const entries = Object.entries(salesData).sort(([a], [b]) => b.localeCompare(a)).slice(0, 14);
-if (entries.length === 0) return null;
-const days = entries.length;
-const totals = { visitor: 0, voiceAll: 0, holdAll: 0, estimate: 0, contract: 0, review: 0, premium: 0 };
-entries.forEach(([, v]) => {
-const s = v.store || {};
-Object.keys(totals).forEach(k => { totals[k] += (s[k] || 0); });
-});
-const avg = {};
-Object.keys(totals).forEach(k => { avg[k] = totals[k] / days; });
-const pred = {};
-Object.keys(avg).forEach(k => { pred[k] = Math.round(avg[k] * 14); });
-const holdRate = totals.voiceAll > 0 ? (totals.holdAll / totals.voiceAll * 100).toFixed(1) : 0;
-const contractRate = totals.holdAll > 0 ? (totals.contract / totals.holdAll * 100).toFixed(1) : 0;
-return { pred, holdRate, contractRate, days };
-};
-
-// Dogrun aggregation
-const dogByMonth = () => {
-const m = {};
-Object.entries(dogData).forEach(([date, v]) => {
-const mo = getMonth(date);
-if (!m[mo]) m[mo] = { families: 0, dogs: 0, small: 0, medium: 0, large: 0, members: 0, days: 0, weatherCount: {} };
-m[mo].families += (v.families || 0);
-m[mo].dogs += (v.dogs || 0);
-m[mo].small += (v.small || 0);
-m[mo].medium += (v.medium || 0);
-m[mo].large += (v.large || 0);
-m[mo].members += (v.members || 0);
-m[mo].days++;
-const w = v.weather || “不明”;
-m[mo].weatherCount[w] = (m[mo].weatherCount[w] || 0) + 1;
-});
-return m;
-};
-
-const dogByWeek = () => {
-const w = {};
-Object.entries(dogData).forEach(([date, v]) => {
-const wk = `${date.slice(0, 4)}-W${String(getWeek(date)).padStart(2, "0")}`;
-if (!w[wk]) w[wk] = { families: 0, dogs: 0, small: 0, medium: 0, large: 0, members: 0, days: 0 };
-w[wk].families += (v.families || 0);
-w[wk].dogs += (v.dogs || 0);
-w[wk].small += (v.small || 0);
-w[wk].medium += (v.medium || 0);
-w[wk].large += (v.large || 0);
-w[wk].members += (v.members || 0);
-w[wk].days++;
-});
-return w;
-};
-
-// ── Export ──
-const exportCSV = (data, filename) => {
-const rows = [[“日付”, …Object.keys(Object.values(data)[0] || {})]];
-Object.entries(data).sort().forEach(([d, v]) => rows.push([d, …Object.values(v)]));
-const csv = rows.map(r => r.join(”,”)).join(”\n”);
-const blob = new Blob([”\uFEFF” + csv], { type: “text/csv;charset=utf-8;” });
-const url = URL.createObjectURL(blob);
-const a = document.createElement(“a”); a.href = url; a.download = filename; a.click();
-};
-
-const exportSalesCSV = () => {
-const flat = {};
-Object.entries(salesData).sort().forEach(([d, v]) => {
-flat[d] = { …(v.store || {}) };
-staff.forEach(n => {
-const sr = v.staff?.[n] || {};
-STAFF_FIELD_KEYS.forEach(k => { flat[d][`${n}_${k}`] = sr[k] || 0; });
-});
-});
-exportCSV(flat, “sales_data.csv”);
-};
-
-const updateStaffRow = (name, key, val) => {
-setStaffRows(prev => ({ …prev, [name]: { …prev[name], [key]: Number(val) || 0 } }));
-};
-
-const staffColTotals = () => {
-const t = { voice: 0, hold: 0, estimate: 0, contract: 0, review: 0, premium: 0, visitor: 0 };
-staff.forEach(n => { STAFF_FIELD_KEYS.forEach(k => { t[k] += (staffRows[n]?.[k] || 0); }); });
-return t;
-};
-
-const prediction = predict2weeks();
-
-// ═══════════════════════════════════════
-// RENDER
-// ═══════════════════════════════════════
-return (
-<>
-<style>{css}</style>
-<div className="app">
-{/* Header */}
-<div className="header">
-<div className="header-title"> ペットショップ活動管理</div>
-</div>
-
-```
- {/* Main tabs */}
- <div className="tab-bar">
- <div className={`tab ${tab === "sales" ? "active" : ""}`} onClick={() => setTab("sales")}>販売・サブスク</div>
- <div className={`tab dogrun-tab ${tab === "dogrun" ? "active" : ""}`} onClick={() => setTab("dogrun")}> ドッグラン</div>
- <div className={`tab ${tab === "settings" ? "active" : ""}`} onClick={() => setTab("settings")}> 設定</div>
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title> ペットショップ活動管理システム</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0f1117;color:#e8eaf6;font-family:'Noto Sans JP',sans-serif;min-height:100vh}
+.app{max-width:480px;margin:0 auto;padding:0 0 80px}
+.header{background:linear-gradient(135deg,#1a1f35,#252a45);padding:20px 20px 16px;border-bottom:1px solid #252a3a;position:sticky;top:0;z-index:100}
+.header-title{font-family:'Space Grotesk',sans-serif;font-size:18px;font-weight:700;display:flex;align-items:center;gap:8px}
+.tab-bar{display:flex;background:#181c27;border-bottom:1px solid #252a3a;position:sticky;z-index:99}
+.tab-bar.main{top:61px}
+.tab-bar.sub{top:109px}
+.tab{flex:1;padding:12px 4px;text-align:center;font-size:12px;font-weight:500;color:#7b82a0;cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;user-select:none}
+.tab.active-sales{color:#6c8ef5;border-bottom-color:#6c8ef5}
+.tab.active-dog{color:#3ecf8e;border-bottom-color:#3ecf8e}
+.section{padding:16px}
+.card{background:#181c27;border:1px solid #252a3a;border-radius:14px;padding:16px;margin-bottom:14px}
+.card-title{font-size:14px;font-weight:700;color:#e8eaf6;margin-bottom:14px;display:flex;align-items:center;gap:6px}
+.field-label{font-size:12px;color:#7b82a0;margin-bottom:6px;font-weight:500}
+input[type=text],input[type=number],input[type=date],select,textarea{width:100%;background:#1e2333;border:1px solid #252a3a;border-radius:8px;padding:10px 12px;color:#e8eaf6;font-size:14px;font-family:'Noto Sans JP',sans-serif;outline:none;transition:border-color .2s;appearance:none;-webkit-appearance:none}
+input:focus,select:focus,textarea:focus{border-color:#6c8ef5}
+.field-group{margin-bottom:12px}
+.btn{width:100%;padding:12px;border-radius:10px;border:none;font-size:14px;font-weight:700;font-family:'Noto Sans JP',sans-serif;cursor:pointer;transition:opacity .15s;margin-bottom:8px;display:block}
+.btn:active{opacity:.75}
+.btn-primary{background:linear-gradient(135deg,#6c8ef5,#8b6cf7);color:#fff}
+.btn-dog{background:linear-gradient(135deg,#3ecf8e,#26a671);color:#fff}
+.btn-export{background:linear-gradient(135deg,#06b6d4,#3b82f6);color:#fff}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.stat-box{background:#1e2333;border-radius:10px;padding:12px;text-align:center}
+.stat-val{font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:700;color:#6c8ef5}
+.stat-val.green{color:#3ecf8e}
+.stat-label{font-size:10px;color:#7b82a0;margin-top:2px}
+.predict-box{background:linear-gradient(135deg,#1a2040,#252a55);border:1px solid #3a4070;border-radius:12px;padding:14px;margin-bottom:10px}
+.predict-title{font-size:12px;color:#8b9de8;margin-bottom:8px}
+.predict-val{font-family:'Space Grotesk',sans-serif;font-size:28px;font-weight:700;color:#6c8ef5}
+.predict-sub{font-size:11px;color:#7b82a0;margin-top:4px}
+.staff-row{display:flex;align-items:center;gap:8px;background:#1e2333;border-radius:8px;padding:10px;margin-bottom:8px}
+.staff-name{font-size:12px;font-weight:500;color:#e8eaf6;min-width:64px;flex-shrink:0}
+.staff-inputs{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;flex:1}
+.mini-input{background:#252a3a;border:1px solid #252a3a;border-radius:6px;padding:6px 2px;color:#e8eaf6;font-size:12px;font-family:'Noto Sans JP',sans-serif;outline:none;text-align:center;width:100%;appearance:none;-webkit-appearance:none}
+.mini-input:focus{border-color:#6c8ef5}
+.mini-label{font-size:9px;color:#7b82a0;text-align:center;margin-bottom:3px}
+.staff-header{display:grid;grid-template-columns:64px repeat(7,1fr);gap:3px;margin-bottom:4px}
+.staff-total-row{display:grid;grid-template-columns:64px repeat(7,1fr);gap:3px;background:#252a3a;border-radius:8px;padding:8px 10px;margin-top:4px}
+.total-cell{font-size:12px;font-weight:700;color:#f5a623;text-align:center}
+.rate-row{display:flex;align-items:center;justify-content:space-between;background:#1e2333;border-radius:8px;padding:8px 10px;margin-bottom:6px}
+.rate-item{text-align:center}
+.rate-val{font-size:15px;font-weight:700}
+.rate-lbl{font-size:9px;color:#7b82a0}
+.divider{width:1px;background:#252a3a;align-self:stretch}
+.tag{display:inline-block;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:500}
+.tag-blue{background:#1e3a5f;color:#6bb3f5}
+.tag-green{background:#1a3d2e;color:#4dd4a0}
+.month-header{background:#1e2333;border-radius:8px;padding:10px 12px;margin-bottom:8px;font-size:13px;font-weight:700;color:#6c8ef5;display:flex;justify-content:space-between;align-items:center;cursor:pointer;user-select:none}
+.checkbox-group{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+.checkbox-item{display:flex;align-items:center;gap:4px;font-size:12px;color:#7b82a0;cursor:pointer}
+.checkbox-item input[type=checkbox]{width:auto;padding:0;accent-color:#3ecf8e}
+.alert-box{background:#1a2a1a;border:1px solid #2d5a2d;border-radius:8px;padding:10px 12px;font-size:12px;color:#3ecf8e;margin-bottom:10px}
+.scroll-x{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<div class="app">
+ <div class="header">
+ <div class="header-title"> ペットショップ活動管理</div>
  </div>
 
- {/* ═══ SALES TAB ═══ */}
- {tab === "sales" && (
- <>
- <div className="tab-bar" style={{ top: 109 }}>
- {["input","week","month","predict"].map(t2 => (
- <div key={t2} className={`tab ${subTab === t2 ? "active" : ""}`} onClick={() => setSubTab(t2)}>
- {t2 === "input" ? "入力" : t2 === "week" ? "今週" : t2 === "month" ? "月別" : "予測"}
- </div>
- ))}
+ <!-- MAIN TABS -->
+ <div class="tab-bar main">
+ <div class="tab" id="main-sales" onclick="switchMain('sales')">販売・サブスク</div>
+ <div class="tab" id="main-dog" onclick="switchMain('dog')"> ドッグラン</div>
+ <div class="tab" id="main-settings" onclick="switchMain('settings')"> 設定</div>
  </div>
 
- <div className="section" style={{ paddingTop: 14 }}>
- {/* ─ Input ─ */}
- {subTab === "input" && (
- <>
- <div className="card">
- <div className="card-title"> 日付</div>
- <input type="date" className="input" value={saleDate} onChange={e => setSaleDate(e.target.value)} />
+ <!-- SALES -->
+ <div id="section-sales">
+ <div class="tab-bar sub">
+ <div class="tab" id="sub-input" onclick="switchSub('input')">入力</div>
+ <div class="tab" id="sub-week" onclick="switchSub('week')">今週</div>
+ <div class="tab" id="sub-month" onclick="switchSub('month')">月別</div>
+ <div class="tab" id="sub-predict" onclick="switchSub('predict')">予測</div>
  </div>
 
- {/* Store totals */}
- <div className="card">
- <div className="card-title"> 店舗合計（任意）</div>
- <div className="grid2">
- {[["来客数","visitor"],["声かけ数","voiceAll"],["抱っこ数","holdAll"],["見積り配布","estimate"],["契約数","contract"],["口コミ数","review"],["プレミアム","premium"]].map(([label,key]) => (
- <div className="field-group" key={key}>
- <div className="field-label">{label}</div>
- <input type="number" className="input" min="0" value={storeRow[key]} onChange={e => setStoreRow(p => ({ ...p, [key]: Number(e.target.value) || 0 }))} />
+ <div class="section hidden" id="pane-input">
+ <div class="card">
+ <div class="card-title"> 日付</div>
+ <input type="date" id="sale-date" onchange="buildStaffInputRows()">
  </div>
- ))}
+ <div class="card">
+ <div class="card-title"> 店舗合計（任意）</div>
+ <div class="grid2" id="store-fields"></div>
  </div>
- </div>
-
- {/* Staff rows */}
- <div className="card">
- <div className="card-title"> スタッフ別入力</div>
- <div className="scroll-x">
- <div className="staff-header">
- <div style={{ fontSize: 9, color: C.muted }}></div>
- {STAFF_FIELDS.map(f => <div key={f} className="mini-label">{f}</div>)}
- </div>
- {staff.map(name => (
- <div className="staff-row" key={name}>
- <div className="staff-name">{name}</div>
- <div className="staff-inputs">
- {STAFF_FIELD_KEYS.map(k => (
- <input key={k} type="number" className="mini-input" min="0"
- value={staffRows[name]?.[k] || 0}
- onChange={e => updateStaffRow(name, k, e.target.value)} />
- ))}
- </div>
- </div>
- ))}
- {/* Total row */}
- {staff.length > 0 && (() => {
- const t = staffColTotals();
- return (
- <div className="staff-total-row">
- <div className="total-cell" style={{ fontSize: 10, color: C.muted, textAlign: "left" }}>合計</div>
- {STAFF_FIELD_KEYS.map(k => <div key={k} className="total-cell">{t[k]}</div>)}
- </div>
- );
- })()}
- </div>
- {/* Staff rate cards */}
- <div style={{ marginTop: 12 }}>
- <div style={{ fontSize: 12, color: C.accent2, fontWeight: 700, marginBottom: 8 }}> スタッフ別 転換率</div>
- {staff.map(n => {
- const r = staffRows[n] || {};
- const holdR = r.voice > 0 ? (r.hold / r.voice * 100).toFixed(0) : "-";
- const estR = r.hold > 0 ? (r.estimate / r.hold * 100).toFixed(0) : "-";
- const ctR = r.hold > 0 ? (r.contract / r.hold * 100).toFixed(0) : "-";
- const hasData = r.voice > 0 || r.hold > 0;
- return (
- <div key={n} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "#1e2333", borderRadius: 8, padding: "8px 10px", marginBottom: 6 }}>
- <div style={{ fontSize: 12, color: C.text, fontWeight: 500, minWidth: 60 }}>{n}</div>
- <div style={{ display: "flex", gap: 8 }}>
- <div style={{ textAlign: "center" }}>
- <div style={{ fontSize: 15, fontWeight: 700, color: hasData ? C.accent : C.muted }}>{holdR}{holdR !== "-" ? "%" : ""}</div>
- <div style={{ fontSize: 9, color: C.muted }}>抱っこ率</div>
- </div>
- <div style={{ width: 1, background: C.cardBorder }} />
- <div style={{ textAlign: "center" }}>
- <div style={{ fontSize: 15, fontWeight: 700, color: hasData ? C.accent2 : C.muted }}>{estR}{estR !== "-" ? "%" : ""}</div>
- <div style={{ fontSize: 9, color: C.muted }}>見積り率</div>
- </div>
- <div style={{ width: 1, background: C.cardBorder }} />
- <div style={{ textAlign: "center" }}>
- <div style={{ fontSize: 15, fontWeight: 700, color: hasData ? C.dogrun : C.muted }}>{ctR}{ctR !== "-" ? "%" : ""}</div>
- <div style={{ fontSize: 9, color: C.muted }}>契約率</div>
- </div>
- </div>
- </div>
- );
- })}
- </div>
- </div>
-
- <button className="btn btn-primary" onClick={saveSales}> 保存する</button>
- <div style={{ height: 8 }} />
- <button className="btn btn-export" onClick={exportSalesCSV}> CSVエクスポート</button>
- </>
- )}
-
- {/* ─ Week ─ */}
- {subTab === "week" && (() => {
- const weeks = salesByWeek();
- const sorted = Object.keys(weeks).sort().reverse();
- if (sorted.length === 0) return <div className="card"><div style={{ color: C.muted, fontSize: 13 }}>データがまだありません</div></div>;
- return sorted.slice(0, 8).map(wk => {
- const d = weeks[wk];
- const holdR = d.voiceAll > 0 ? (d.holdAll / d.voiceAll * 100).toFixed(0) : 0;
- const ctR = d.holdAll > 0 ? (d.contract / d.holdAll * 100).toFixed(0) : 0;
- return (
- <div className="card" key={wk}>
- <div className="card-title"><span className="tag tag-blue">{wk}</span> <span style={{ fontSize: 11, color: C.muted }}>{d.days}日分</span></div>
- <div className="grid3">
- {[["来客",d.visitor],["声かけ",d.voiceAll],["抱っこ",d.holdAll],["見積",d.estimate],["契約",d.contract],["口コミ",d.review],["プレミ",d.premium],["抱っこ率",holdR+"%"],["契約率",ctR+"%"]].map(([l,v]) => (
- <div className="stat-box" key={l}><div className="stat-val" style={{ fontSize: 18 }}>{v}</div><div className="stat-label">{l}</div></div>
- ))}
- </div>
- </div>
- );
- });
- })()}
-
- {/* ─ Month ─ */}
- {subTab === "month" && (() => {
- const months = salesByMonth();
- const sorted = Object.keys(months).sort().reverse();
- if (sorted.length === 0) return <div className="card"><div style={{ color: C.muted, fontSize: 13 }}>データがまだありません</div></div>;
- return sorted.map(mo => {
- const d = months[mo];
- const exp = monthExpanded[mo];
- const sm = staffByMonth(mo);
- const holdR = d.voiceAll > 0 ? (d.holdAll / d.voiceAll * 100).toFixed(1) : 0;
- const ctR = d.holdAll > 0 ? (d.contract / d.holdAll * 100).toFixed(1) : 0;
- return (
- <div className="card" key={mo}>
- <div className="month-header" onClick={() => setMonthExpanded(p => ({ ...p, [mo]: !exp }))}>
- <span>{mo} <span style={{ fontSize: 11, color: C.muted }}>（{d.days}日）</span></span>
- <span style={{ fontSize: 12 }}>{exp ? "▲" : "▼"}</span>
- </div>
- <div className="grid3">
- {[["来客",d.visitor],["声かけ",d.voiceAll],["抱っこ",d.holdAll],["見積",d.estimate],["契約",d.contract],["口コミ",d.review],["プレミ",d.premium],["抱っこ率",holdR+"%"],["契約率",ctR+"%"]].map(([l,v]) => (
- <div className="stat-box" key={l}><div className="stat-val" style={{ fontSize: 16 }}>{v}</div><div className="stat-label">{l}</div></div>
- ))}
- </div>
- {exp && (
- <div style={{ marginTop: 12 }}>
- <div style={{ fontSize: 12, color: C.accent2, fontWeight: 700, marginBottom: 8 }}> スタッフ別（{mo}）</div>
- <div className="scroll-x">
- <div className="staff-header">
+ <div class="card">
+ <div class="card-title"> スタッフ別入力</div>
+ <div class="scroll-x">
+ <div class="staff-header">
  <div></div>
- {STAFF_FIELDS.map(f => <div key={f} className="mini-label">{f}</div>)}
+ <div class="mini-label">声かけ</div>
+ <div class="mini-label">抱っこ</div>
+ <div class="mini-label">見積</div>
+ <div class="mini-label">契約</div>
+ <div class="mini-label">口コミ</div>
+ <div class="mini-label">プレミ</div>
+ <div class="mini-label">来客</div>
  </div>
- {staff.map(n => {
- const r = sm[n] || {};
- const holdR = r.voice > 0 ? (r.hold / r.voice * 100).toFixed(0) : "-";
- const estR = r.hold > 0 ? (r.estimate / r.hold * 100).toFixed(0) : "-";
- const ctR = r.hold > 0 ? (r.contract / r.hold * 100).toFixed(0) : "-";
- return (
- <div key={n} style={{ marginBottom: 8 }}>
- <div style={{ display: "grid", gridTemplateColumns: "70px repeat(7,1fr)", gap: 4, marginBottom: 3 }}>
- <div style={{ fontSize: 11, color: C.text, display: "flex", alignItems: "center" }}>{n}</div>
- {STAFF_FIELD_KEYS.map(k => (
- <div key={k} style={{ background: "#1e2333", borderRadius: 6, padding: "6px 2px", textAlign: "center", fontSize: 12, color: C.accent2, fontWeight: 700 }}>{r[k] || 0}</div>
- ))}
- </div>
- <div style={{ display: "grid", gridTemplateColumns: "70px 1fr 1fr 1fr", gap: 4 }}>
- <div />
- {[["抱っこ率", holdR, C.accent], ["見積り率", estR, C.accent2], ["契約率", ctR, C.dogrun]].map(([label, val, color]) => (
- <div key={label} style={{ background: "#13182a", borderRadius: 5, padding: "4px 2px", textAlign: "center" }}>
- <div style={{ fontSize: 13, fontWeight: 700, color: val !== "-" ? color : C.muted }}>{val}{val !== "-" ? "%" : ""}</div>
- <div style={{ fontSize: 9, color: C.muted }}>{label}</div>
- </div>
- ))}
+ <div id="staff-input-rows"></div>
+ <div class="staff-total-row">
+ <div class="total-cell" style="font-size:10px;color:#7b82a0;text-align:left">合計</div>
+ <div class="total-cell" id="tot-voice">0</div>
+ <div class="total-cell" id="tot-hold">0</div>
+ <div class="total-cell" id="tot-estimate">0</div>
+ <div class="total-cell" id="tot-contract">0</div>
+ <div class="total-cell" id="tot-review">0</div>
+ <div class="total-cell" id="tot-premium">0</div>
+ <div class="total-cell" id="tot-visitor">0</div>
  </div>
  </div>
- );
- })}
+ <div style="margin-top:12px">
+ <div style="font-size:12px;color:#f5a623;font-weight:700;margin-bottom:8px"> スタッフ別 転換率</div>
+ <div id="staff-rate-rows"></div>
  </div>
  </div>
- )}
- </div>
- );
- });
- })()}
-
- {/* ─ Predict ─ */}
- {subTab === "predict" && (
- <>
- {!prediction ? (
- <div className="card"><div style={{ color: C.muted, fontSize: 13 }}>データを入力してから予測が表示されます</div></div>
- ) : (
- <>
- <div className="alert">直近{prediction.days}日のデータをもとに算出しています</div>
- <div className="predict-box">
- <div className="predict-title"> 2週間後の予測契約数</div>
- <div className="predict-val">{prediction.pred.contract}件</div>
- <div className="predict-sub">声かけ→抱っこ率 {prediction.holdRate}% ／ 抱っこ→契約率 {prediction.contractRate}%</div>
- </div>
- <div className="card">
- <div className="card-title"> 2週間後の予測値</div>
- <div className="grid2">
- {[["来客数",prediction.pred.visitor],["声かけ数",prediction.pred.voiceAll],["抱っこ数",prediction.pred.holdAll],["見積り配布",prediction.pred.estimate],["口コミ数",prediction.pred.review],["プレミアム",prediction.pred.premium]].map(([l,v]) => (
- <div className="stat-box" key={l}>
- <div className="stat-val" style={{ fontSize: 20 }}>{v}</div>
- <div className="stat-label">{l}</div>
- </div>
- ))}
- </div>
- </div>
- </>
- )}
- </>
- )}
- </div>
- </>
- )}
-
- {/* ═══ DOGRUN TAB ═══ */}
- {tab === "dogrun" && (
- <>
- <div className="tab-bar" style={{ top: 109 }}>
- {["input","week","month"].map(t2 => (
- <div key={t2} className={`tab dogrun-tab ${dogSubTab === t2 ? "active" : ""}`} onClick={() => setDogSubTab(t2)}>
- {t2 === "input" ? "入力" : t2 === "week" ? "週別" : "月別"}
- </div>
- ))}
+ <button class="btn btn-primary" onclick="saveSales()"> 保存する</button>
+ <button class="btn btn-export" onclick="exportSalesCSV()"> CSVエクスポート</button>
  </div>
 
- <div className="section" style={{ paddingTop: 14 }}>
- {dogSubTab === "input" && (
- <>
- <div className="card">
- <div className="card-title"> 本日のドッグランデータ</div>
- <div className="field-group">
- <div className="field-label">日付</div>
- <input type="date" className="input" value={dogDate} onChange={e => setDogDate(e.target.value)} />
- </div>
- <div className="grid2">
- <div className="field-group">
- <div className="field-label">利用家族数</div>
- <input type="number" className="input" min="0" value={dogRow.families} onChange={e => setDogRow(p => ({ ...p, families: Number(e.target.value) || 0 }))} />
- </div>
- <div className="field-group">
- <div className="field-label">利用頭数（合計）</div>
- <input type="number" className="input" min="0" value={dogRow.dogs} onChange={e => setDogRow(p => ({ ...p, dogs: Number(e.target.value) || 0 }))} />
- </div>
- </div>
- <div className="field-group">
- <div className="field-label">天気</div>
- <select className="select" value={dogRow.weather} onChange={e => setDogRow(p => ({ ...p, weather: e.target.value }))}>
- <option value="">選択してください</option>
- {WEATHER_OPTIONS.map(w => <option key={w} value={w}>{w}</option>)}
- </select>
- </div>
- <div className="field-group">
- <div className="field-label">気温（°C）</div>
- <input type="number" className="input" value={dogRow.temp} onChange={e => setDogRow(p => ({ ...p, temp: Number(e.target.value) || 0 }))} />
- </div>
- <div className="grid3">
- {[["小型犬","small"],["中型犬","medium"],["大型犬","large"]].map(([l,k]) => (
- <div className="field-group" key={k}>
- <div className="field-label">{l}</div>
- <input type="number" className="input" min="0" value={dogRow[k]} onChange={e => setDogRow(p => ({ ...p, [k]: Number(e.target.value) || 0 }))} />
- </div>
- ))}
- </div>
- <div className="field-group">
- <div className="field-label">新規会員数</div>
- <input type="number" className="input" min="0" value={dogRow.members} onChange={e => setDogRow(p => ({ ...p, members: Number(e.target.value) || 0 }))} />
- </div>
- <div className="field-group">
- <div className="field-label">当店を知った理由（複数選択可）</div>
- <div className="checkbox-group">
- {KNOWN_BY_OPTIONS.map(opt => (
- <label className="checkbox-item" key={opt}>
- <input type="checkbox" checked={dogRow.knownBy?.includes(opt)}
- onChange={e => setDogRow(p => ({ ...p, knownBy: e.target.checked ? [...(p.knownBy || []), opt] : (p.knownBy || []).filter(x => x !== opt) }))} />
- {opt}
- </label>
- ))}
- </div>
- </div>
- </div>
- <button className="btn btn-dogrun" onClick={saveDog}> 保存する</button>
- <div style={{ height: 8 }} />
- <button className="btn btn-export" onClick={() => exportCSV(dogData, "dogrun_data.csv")}> CSVエクスポート</button>
- </>
- )}
-
- {dogSubTab === "week" && (() => {
- const weeks = dogByWeek();
- const sorted = Object.keys(weeks).sort().reverse();
- if (sorted.length === 0) return <div className="card"><div style={{ color: C.muted, fontSize: 13 }}>データがまだありません</div></div>;
- return sorted.slice(0, 12).map(wk => {
- const d = weeks[wk];
- const avgDog = d.days > 0 ? (d.dogs / d.days).toFixed(1) : 0;
- return (
- <div className="card" key={wk}>
- <div className="card-title"><span className="tag tag-green">{wk}</span> <span style={{ fontSize: 11, color: C.muted }}>{d.days}日分</span></div>
- <div className="grid3">
- {[["家族数",d.families],["頭数合計",d.dogs],["1日平均",avgDog+"頭"],["小型犬",d.small],["中型犬",d.medium],["大型犬",d.large],["新規会員",d.members]].map(([l,v]) => (
- <div className="stat-box" key={l}><div className="stat-val green" style={{ fontSize: 16 }}>{v}</div><div className="stat-label">{l}</div></div>
- ))}
- </div>
- </div>
- );
- });
- })()}
-
- {dogSubTab === "month" && (() => {
- const months = dogByMonth();
- const sorted = Object.keys(months).sort().reverse();
- if (sorted.length === 0) return <div className="card"><div style={{ color: C.muted, fontSize: 13 }}>データがまだありません</div></div>;
- return sorted.map(mo => {
- const d = months[mo];
- const avgDog = d.days > 0 ? (d.dogs / d.days).toFixed(1) : 0;
- const topWeather = Object.entries(d.weatherCount).sort((a, b) => b[1] - a[1])[0];
- return (
- <div className="card" key={mo}>
- <div className="month-header" style={{ cursor: "default" }}>
- <span>{mo} <span style={{ fontSize: 11, color: C.muted }}>（{d.days}日）</span></span>
- {topWeather && <span style={{ fontSize: 11, color: C.dogrun }}>{topWeather[0]}が多かった</span>}
- </div>
- <div className="grid3">
- {[["家族数計",d.families],["頭数計",d.dogs],["1日平均",avgDog+"頭"],["小型犬",d.small],["中型犬",d.medium],["大型犬",d.large],["新規会員",d.members]].map(([l,v]) => (
- <div className="stat-box" key={l}><div className="stat-val green" style={{ fontSize: 16 }}>{v}</div><div className="stat-label">{l}</div></div>
- ))}
- </div>
- </div>
- );
- });
- })()}
- </div>
- </>
- )}
-
- {/* ═══ SETTINGS TAB ═══ */}
- {tab === "settings" && (
- <div className="section" style={{ paddingTop: 14 }}>
- <div className="card">
- <div className="card-title"> スタッフ登録（最大10名）</div>
- <div className="alert">1行に1人ずつ入力してください</div>
- <div className="field-group">
- <textarea className="input" rows={10} style={{ resize: "vertical", lineHeight: 1.8 }}
- value={staffInput} onChange={e => setStaffInput(e.target.value)} />
- </div>
- <button className="btn btn-primary" onClick={saveStaff}> スタッフを保存する</button>
+ <div class="section hidden" id="pane-week"><div id="week-content"></div></div>
+ <div class="section hidden" id="pane-month"><div id="month-content"></div></div>
+ <div class="section hidden" id="pane-predict"><div id="predict-content"></div></div>
  </div>
 
- <div className="card">
- <div className="card-title"> データ管理</div>
- <button className="btn btn-export" style={{ marginBottom: 8 }} onClick={exportSalesCSV}>販売データをエクスポート</button>
- <button className="btn btn-export" onClick={() => exportCSV(dogData, "dogrun_data.csv")}>ドッグランデータをエクスポート</button>
- </div>
- </div>
- )}
- </div>
-</>
-```
-
-);
+ <!-- DOGRUN -->
+< truncated lines 139-364 >
+ }).join('') : noData();
 }
+
+function renderSalesMonth() {
+ const months=salesByMonth(), sorted=Object.keys(months).sort().reverse();
+ document.getElementById('month-content').innerHTML = sorted.length ? sorted.map(mo=>{
+ const d=months[mo], sm=staffByMonth(mo), exp=monthExpanded[mo];
+ const staffHTML=staff.map(n=>{
+ const r=sm[n]||{}, hR=pct(r.hold,r.voice), eR=pct(r.estimate,r.hold), cR=pct(r.contract,r.hold);
+ return `<div style="margin-bottom:8px">
+ <div style="display:grid;grid-template-columns:64px repeat(7,1fr);gap:3px;margin-bottom:3px">
+ <div style="font-size:11px;color:#e8eaf6;display:flex;align-items:center">${n}</div>
+ ${STAFF_KEYS.map(k=>`<div style="background:#1e2333;border-radius:6px;padding:6px 2px;text-align:center;font-size:12px;color:#f5a623;font-weight:700">${r[k]||0}</div>`).join('')}
+ </div>
+ <div style="display:grid;grid-template-columns:64px 1fr 1fr 1fr;gap:3px"><div></div>
+ ${[['抱っこ率',hR,'#6c8ef5'],['見積り率',eR,'#f5a623'],['契約率',cR,'#3ecf8e']].map(([lb,val,col])=>
+ `<div style="background:#13182a;border-radius:5px;padding:4px 2px;text-align:center"><div style="font-size:13px;font-weight:700;color:${val!=='-'?col:'#7b82a0'}">${val}</div><div style="font-size:9px;color:#7b82a0">${lb}</div></div>`).join('')}
+ </div></div>`;
+ }).join('');
+ const eid='exp'+mo.replace('-','');
+ return `<div class="card">
+ <div class="month-header" onclick="toggleMonth('${mo}','${eid}')">
+ <span>${mo} <span style="font-size:11px;color:#7b82a0">（${d.days}日）</span></span>
+ <span id="arr${eid}">${exp?'▲':'▼'}</span>
+ </div>
+ <div class="grid3">${[['来客',d.visitor],['声かけ',d.voiceAll],['抱っこ',d.holdAll],['見積',d.estimate],['契約',d.contract],['口コミ',d.review],['プレミ',d.premium],['抱っこ率',pct(d.holdAll,d.voiceAll)],['契約率',pct(d.contract,d.holdAll)]].map(([l,v])=>statBox(l,v)).join('')}</div>
+ <div id="${eid}" style="${exp?'':'display:none'};margin-top:12px">
+ <div style="font-size:12px;color:#f5a623;font-weight:700;margin-bottom:8px"> スタッフ別（${mo}）</div>
+ <div class="scroll-x">
+ <div class="staff-header"><div></div>${STAFF_LABELS.map(l=>`<div class="mini-label">${l}</div>`).join('')}</div>
+ ${staffHTML}
+ </div>
+ </div></div>`;
+ }).join('') : noData();
+}
+
+function toggleMonth(mo,eid) {
+ monthExpanded[mo]=!monthExpanded[mo];
+ const el=document.getElementById(eid); if(el) el.style.display=monthExpanded[mo]?'':'none';
+ const ar=document.getElementById('arr'+eid); if(ar) ar.textContent=monthExpanded[mo]?'▲':'▼';
+}
+
+function renderPredict() {
+ const entries=Object.entries(salesData).sort(([a],[b])=>b.localeCompare(a)).slice(0,14);
+ const el=document.getElementById('predict-content');
+ if(!entries.length){el.innerHTML=noData();return;}
+ const days=entries.length, tot={visitor:0,voiceAll:0,holdAll:0,estimate:0,contract:0,review:0,premium:0};
+ entries.forEach(([,v])=>{const s=v.store||{};Object.keys(tot).forEach(k=>tot[k]+=(s[k]||0));});
+ const pred={}; Object.keys(tot).forEach(k=>pred[k]=Math.round(tot[k]/days*14));
+ el.innerHTML=`<div class="alert-box">直近${days}日のデータをもとに算出しています</div>
+ <div class="predict-box">
+ <div class="predict-title"> 2週間後の予測契約数</div>
+ <div class="predict-val">${pred.contract}件</div>
+ <div class="predict-sub">声かけ→抱っこ率 ${tot.voiceAll>0?(tot.holdAll/tot.voiceAll*100).toFixed(1):0}% ／ 抱っこ→契約率 ${tot.holdAll>0?(tot.contract/tot.holdAll*100).toFixed(1):0}%</div>
+ </div>
+ <div class="card"><div class="card-title"> 2週間後の予測値</div>
+ <div class="grid2">${[['来客数',pred.visitor],['声かけ数',pred.voiceAll],['抱っこ数',pred.holdAll],['見積り配布',pred.estimate],['口コミ数',pred.review],['プレミアム',pred.premium]].map(([l,v])=>statBox(l,v)).join('')}</div>
+ </div>`;
+}
+
+function renderDogWeek() {
+ const weeks=dogByWeek(), sorted=Object.keys(weeks).sort().reverse().slice(0,12);
+ document.getElementById('dog-week-content').innerHTML = sorted.length ? sorted.map(wk=>{
+ const d=weeks[wk];
+ return `<div class="card"><div class="card-title"><span class="tag tag-green">${wk}</span> <span style="font-size:11px;color:#7b82a0">${d.days}日分</span></div>
+ <div class="grid3">${[['家族数',d.families],['頭数合計',d.dogs],['1日平均',(d.days>0?(d.dogs/d.days).toFixed(1):0)+'頭'],['小型犬',d.small],['中型犬',d.medium],['大型犬',d.large],['新規会員',d.members]].map(([l,v])=>statBox(l,v,true)).join('')}</div></div>`;
+ }).join('') : noData();
+}
+
+function renderDogMonth() {
+ const months=dogByMonth(), sorted=Object.keys(months).sort().reverse();
+ document.getElementById('dog-month-content').innerHTML = sorted.length ? sorted.map(mo=>{
+ const d=months[mo], topW=Object.entries(d.wc).sort((a,b)=>b[1]-a[1])[0];
+ return `<div class="card">
+ <div class="month-header" style="cursor:default">
+ <span>${mo} <span style="font-size:11px;color:#7b82a0">（${d.days}日）</span></span>
+ ${topW?`<span style="font-size:11px;color:#3ecf8e">${topW[0]}が多かった</span>`:''}
+ </div>
+ <div class="grid3">${[['家族数計',d.families],['頭数計',d.dogs],['1日平均',(d.days>0?(d.dogs/d.days).toFixed(1):0)+'頭'],['小型犬',d.small],['中型犬',d.medium],['大型犬',d.large],['新規会員',d.members]].map(([l,v])=>statBox(l,v,true)).join('')}</div>
+ </div>`;
+ }).join('') : noData();
+}
+
+// Tab switching
+function switchMain(tab) {
+ ['sales','dog','settings'].forEach(t=>document.getElementById('section-'+t).classList.toggle('hidden',t!==tab));
+ document.getElementById('main-sales').className='tab';
+ document.getElementById('main-dog').className='tab';
+ document.getElementById('main-settings').className='tab';
+ if(tab==='sales'){document.getElementById('main-sales').className='tab active-sales';switchSub(subTab);}
+ else if(tab==='dog'){document.getElementById('main-dog').className='tab active-dog';switchDogSub(dogSubTab);}
+ else document.getElementById('main-settings').className='tab active-sales';
+}
+function switchSub(tab) {
+ subTab=tab;
+ ['input','week','month','predict'].forEach(t=>{
+ document.getElementById('pane-'+t).classList.toggle('hidden',t!==tab);
+ document.getElementById('sub-'+t).className=t===tab?'tab active-sales':'tab';
+ });
+ if(tab==='week') renderSalesWeek();
+ else if(tab==='month') renderSalesMonth();
+ else if(tab==='predict') renderPredict();
+ else buildStaffInputRows();
+}
+function switchDogSub(tab) {
+ dogSubTab=tab;
+ ['input','week','month'].forEach(t=>{
+ document.getElementById('dpane-'+t).classList.toggle('hidden',t!==tab);
+ document.getElementById('dsub-'+t).className=t===tab?'tab active-dog':'tab';
+ });
+ if(tab==='week') renderDogWeek();
+ else if(tab==='month') renderDogMonth();
+}
+
+// CSV export
+function exportSalesCSV() {
+ const rows=[['日付','来客数','声かけ数','抱っこ数','見積り配布','契約数','口コミ数','プレミアム']];
+ Object.entries(salesData).sort().forEach(([d,v])=>{
+ const s=v.store||{}; rows.push([d,s.visitor||0,s.voiceAll||0,s.holdAll||0,s.estimate||0,s.contract||0,s.review||0,s.premium||0]);
+ }); dlCSV(rows,'sales_data.csv');
+}
+function exportDogCSV() {
+ const rows=[['日付','家族数','頭数','天気','気温','小型犬','中型犬','大型犬','新規会員']];
+ Object.entries(dogData).sort().forEach(([d,v])=>{
+ rows.push([d,v.families||0,v.dogs||0,v.weather||'',v.temp||0,v.small||0,v.medium||0,v.large||0,v.members||0]);
+ }); dlCSV(rows,'dogrun_data.csv');
+}
+function dlCSV(rows,fname) {
+ const a=document.createElement('a');
+ a.href='data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(rows.map(r=>r.join(',')).join('\n'));
+ a.download=fname; a.click();
+}
+
+window.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
