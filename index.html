@@ -1,1279 +1,644 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ペットショップ活動管理システム</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Noto+Sans+JP:wght@300;400;500;700&display=swap');
-        
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        :root {
-            --primary: #FF6B9D;
-            --secondary: #FEC260;
-            --accent: #4ECDC4;
-            --dark: #2D3561;
-            --light: #F7F9FC;
-            --success: #46B881;
-            --warning: #FFA726;
-            --gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --gradient-warm: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            --gradient-cool: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-        }
-        
-        body {
-            font-family: 'Noto Sans JP', sans-serif;
-            background: var(--light);
-            color: var(--dark);
-            line-height: 1.6;
-            overflow-x: hidden;
-        }
-        
-        .background-pattern {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-            opacity: 0.03;
-            background-image: 
-                repeating-linear-gradient(45deg, transparent, transparent 35px, var(--dark) 35px, var(--dark) 70px),
-                repeating-linear-gradient(-45deg, transparent, transparent 35px, var(--dark) 35px, var(--dark) 70px);
-        }
-        
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        
-        header {
-            background: var(--gradient);
-            color: white;
-            padding: 30px 0;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
-            margin-bottom: 40px;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        header::before {
-            content: '🐾';
-            position: absolute;
-            font-size: 200px;
-            right: -50px;
-            top: -80px;
-            opacity: 0.1;
-            transform: rotate(-15deg);
-        }
-        
-        h1 {
-            font-family: 'Outfit', sans-serif;
-            font-weight: 700;
-            font-size: 2.5em;
-            text-align: center;
-            position: relative;
-            z-index: 1;
-            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
-        }
-        
-        .tabs {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin-top: 20px;
-        }
-        
-        .tab-btn {
-            background: rgba(255,255,255,0.2);
-            border: 2px solid rgba(255,255,255,0.4);
-            color: white;
-            padding: 12px 30px;
-            font-size: 1em;
-            font-weight: 600;
-            cursor: pointer;
-            border-radius: 50px;
-            transition: all 0.3s ease;
-            font-family: 'Noto Sans JP', sans-serif;
-        }
-        
-        .tab-btn:hover {
-            background: rgba(255,255,255,0.3);
-            transform: translateY(-2px);
-        }
-        
-        .tab-btn.active {
-            background: white;
-            color: var(--dark);
-            border-color: white;
-        }
-        
-        .tab-content {
-            display: none;
-            animation: fadeIn 0.5s ease;
-        }
-        
-        .tab-content.active {
-            display: block;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        .card {
-            background: white;
-            border-radius: 20px;
-            padding: 30px;
-            margin-bottom: 30px;
-            box-shadow: 0 5px 30px rgba(0,0,0,0.08);
-            transition: all 0.3s ease;
-            border: 1px solid rgba(0,0,0,0.05);
-        }
-        
-        .card:hover {
-            box-shadow: 0 10px 40px rgba(0,0,0,0.12);
-            transform: translateY(-2px);
-        }
-        
-        .card h2 {
-            font-family: 'Outfit', sans-serif;
-            font-size: 1.8em;
-            margin-bottom: 20px;
-            color: var(--dark);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .card h2::before {
-            content: '';
-            width: 5px;
-            height: 30px;
-            background: var(--gradient);
-            border-radius: 10px;
-        }
-        
-        .input-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 20px;
-        }
-        
-        .input-group {
-            position: relative;
-        }
-        
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: var(--dark);
-            font-size: 0.95em;
-        }
-        
-        input[type="number"],
-        input[type="date"],
-        input[type="text"],
-        select {
-            width: 100%;
-            padding: 12px 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            font-size: 1em;
-            transition: all 0.3s ease;
-            font-family: 'Noto Sans JP', sans-serif;
-            background: var(--light);
-        }
-        
-        input:focus,
-        select:focus {
-            outline: none;
-            border-color: var(--primary);
-            background: white;
-            box-shadow: 0 0 0 3px rgba(255, 107, 157, 0.1);
-        }
-        
-        .btn {
-            background: var(--gradient);
-            color: white;
-            border: none;
-            padding: 15px 40px;
-            font-size: 1.1em;
-            font-weight: 600;
-            border-radius: 50px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-family: 'Outfit', sans-serif;
-            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
-        }
-        
-        .btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 30px rgba(102, 126, 234, 0.5);
-        }
-        
-        .btn:active {
-            transform: translateY(-1px);
-        }
-        
-        .btn-secondary {
-            background: var(--gradient-warm);
-            box-shadow: 0 5px 20px rgba(240, 147, 251, 0.3);
-        }
-        
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-top: 20px;
-        }
-        
-        .stat-card {
-            background: var(--light);
-            padding: 20px;
-            border-radius: 15px;
-            text-align: center;
-            border: 2px solid transparent;
-            transition: all 0.3s ease;
-        }
-        
-        .stat-card:hover {
-            border-color: var(--primary);
-            transform: translateY(-3px);
-        }
-        
-        .stat-value {
-            font-size: 2.5em;
-            font-weight: 700;
-            font-family: 'Outfit', sans-serif;
-            background: var(--gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        
-        .stat-label {
-            color: #666;
-            font-size: 0.9em;
-            margin-top: 5px;
-        }
-        
-        .prediction-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 30px;
-            border-radius: 20px;
-            margin-top: 30px;
-        }
-        
-        .prediction-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 20px;
-            margin-top: 20px;
-        }
-        
-        .prediction-item {
-            text-align: center;
-        }
-        
-        .prediction-value {
-            font-size: 2em;
-            font-weight: 700;
-            font-family: 'Outfit', sans-serif;
-        }
-        
-        .prediction-label {
-            opacity: 0.9;
-            font-size: 0.9em;
-            margin-top: 5px;
-        }
-        
-        .chart-container {
-            margin-top: 30px;
-            background: white;
-            padding: 20px;
-            border-radius: 15px;
-        }
-        
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        
-        th, td {
-            padding: 15px;
-            text-align: left;
-            border-bottom: 1px solid #e0e0e0;
-        }
-        
-        th {
-            background: var(--light);
-            font-weight: 600;
-            color: var(--dark);
-        }
-        
-        tr:hover {
-            background: var(--light);
-        }
-        
-        .checkbox-group {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-            margin-top: 10px;
-        }
-        
-        .checkbox-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .checkbox-item input[type="checkbox"] {
-            width: 20px;
-            height: 20px;
-            cursor: pointer;
-        }
-        
-        .loading {
-            text-align: center;
-            padding: 40px;
-            color: #999;
-        }
-        
-        .success-message {
-            background: var(--success);
-            color: white;
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            display: none;
-            animation: slideDown 0.3s ease;
-        }
-        
-        @keyframes slideDown {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        .comparison-section {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-            margin-top: 30px;
-        }
-        
-        .comparison-card {
-            background: var(--light);
-            padding: 20px;
-            border-radius: 15px;
-        }
-        
-        .comparison-title {
-            font-weight: 600;
-            margin-bottom: 15px;
-            font-size: 1.1em;
-        }
-        
-        .trend {
-            display: inline-block;
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-size: 0.9em;
-            font-weight: 600;
-            margin-left: 10px;
-        }
-        
-        .trend.up {
-            background: rgba(70, 184, 129, 0.2);
-            color: var(--success);
-        }
-        
-        .trend.down {
-            background: rgba(255, 87, 87, 0.2);
-            color: #ff5757;
-        }
-        
-        .trend.neutral {
-            background: rgba(255, 167, 38, 0.2);
-            color: var(--warning);
-        }
+import { useState, useEffect } from “react”;
 
-        @media (max-width: 768px) {
-            h1 { font-size: 1.8em; }
-            .input-grid { grid-template-columns: 1fr; }
-            .stats-grid { grid-template-columns: 1fr; }
-            .tabs { flex-direction: column; }
-        }
-    </style>
-</head>
-<body>
-    <div class="background-pattern"></div>
-    
-    <header>
-        <div class="container">
-            <h1>🐾 ペットショップ活動管理システム</h1>
-            <div class="tabs">
-                <button class="tab-btn active" onclick="switchTab('sales')">販売・サブスク管理</button>
-                <button class="tab-btn" onclick="switchTab('dogrun')">ドッグラン管理</button>
-            </div>
-        </div>
-    </header>
-    
-    <div class="container">
-        <!-- 販売・サブスク管理タブ -->
-        <div id="sales-tab" class="tab-content active">
-            <div class="card">
-                <h2>💾 データ管理</h2>
-                <p style="margin-bottom: 20px; color: #666;">データのバックアップやデバイス間の移行に使用できます</p>
-                <div style="display: flex; gap: 15px; flex-wrap: wrap;">
-                    <button class="btn" onclick="exportData('sales')" style="background: var(--gradient-cool);">📥 販売データをエクスポート</button>
-                    <button class="btn" onclick="document.getElementById('import-sales').click()" style="background: var(--gradient-warm);">📤 販売データをインポート</button>
-                    <input type="file" id="import-sales" accept=".json" style="display: none;" onchange="importData('sales', this)">
-                </div>
-            </div>
-            
-            <div class="card">
-                <h2>📊 本日のデータ入力</h2>
-                <div id="sales-success" class="success-message">保存しました！</div>
-                <div class="input-grid">
-                    <div class="input-group">
-                        <label>日付</label>
-                        <input type="date" id="sales-date" required>
-                    </div>
-                    <div class="input-group">
-                        <label>来客数</label>
-                        <input type="number" id="visitors" placeholder="0" min="0">
-                    </div>
-                    <div class="input-group">
-                        <label>毎日抱っこ数</label>
-                        <input type="number" id="hugs" placeholder="0" min="0">
-                    </div>
-                    <div class="input-group">
-                        <label>見積り配布数</label>
-                        <input type="number" id="quotes" placeholder="0" min="0">
-                    </div>
-                    <div class="input-group">
-                        <label>契約数</label>
-                        <input type="number" id="contracts" placeholder="0" min="0">
-                    </div>
-                    <div class="input-group">
-                        <label>プレミアム加入数</label>
-                        <input type="number" id="premium" placeholder="0" min="0">
-                    </div>
-                </div>
-                <button class="btn" onclick="saveSalesData()">💾 保存する</button>
-            </div>
-            
-            <div class="card">
-                <h2>📈 今週の集計</h2>
-                <div class="stats-grid" id="weekly-stats">
-                    <div class="loading">データを読み込み中...</div>
-                </div>
-            </div>
-            
-            <div class="prediction-card">
-                <h2 style="color: white;">🔮 2週間後の予測</h2>
-                <p style="opacity: 0.9; margin-bottom: 20px;">今週の活動から算出される期待値</p>
-                <div class="prediction-grid" id="prediction-stats">
-                    <div class="loading">計算中...</div>
-                </div>
-            </div>
-            
-            <div class="card">
-                <h2>📊 過去データとの比較</h2>
-                <div class="comparison-section" id="comparison-section">
-                    <div class="loading">データを読み込み中...</div>
-                </div>
-            </div>
-            
-            <div class="card">
-                <h2>📋 入力履歴（直近10件）</h2>
-                <div id="sales-history">
-                    <div class="loading">データを読み込み中...</div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- ドッグラン管理タブ -->
-        <div id="dogrun-tab" class="tab-content">
-            <div class="card">
-                <h2>💾 データ管理</h2>
-                <p style="margin-bottom: 20px; color: #666;">データのバックアップやデバイス間の移行に使用できます</p>
-                <div style="display: flex; gap: 15px; flex-wrap: wrap;">
-                    <button class="btn" onclick="exportData('dogrun')" style="background: var(--gradient-cool);">📥 ドッグランデータをエクスポート</button>
-                    <button class="btn" onclick="document.getElementById('import-dogrun').click()" style="background: var(--gradient-warm);">📤 ドッグランデータをインポート</button>
-                    <input type="file" id="import-dogrun" accept=".json" style="display: none;" onchange="importData('dogrun', this)">
-                </div>
-            </div>
-            
-            <div class="card">
-                <h2>🐕 本日のドッグランデータ入力</h2>
-                <div id="dogrun-success" class="success-message">保存しました！</div>
-                <div class="input-grid">
-                    <div class="input-group">
-                        <label>日付</label>
-                        <input type="date" id="dogrun-date" required>
-                    </div>
-                    <div class="input-group">
-                        <label>利用家族数</label>
-                        <input type="number" id="families" placeholder="0" min="0">
-                    </div>
-                    <div class="input-group">
-                        <label>利用頭数（合計）</label>
-                        <input type="number" id="total-dogs" placeholder="0" min="0">
-                    </div>
-                    <div class="input-group">
-                        <label>天気</label>
-                        <select id="weather">
-                            <option value="">選択してください</option>
-                            <option value="晴れ">☀️ 晴れ</option>
-                            <option value="曇り">☁️ 曇り</option>
-                            <option value="雨">🌧️ 雨</option>
-                            <option value="雪">❄️ 雪</option>
-                        </select>
-                    </div>
-                    <div class="input-group">
-                        <label>気温 (°C)</label>
-                        <input type="number" id="temperature" placeholder="0" step="0.1">
-                    </div>
-                    <div class="input-group">
-                        <label>小型犬</label>
-                        <input type="number" id="small-dogs" placeholder="0" min="0">
-                    </div>
-                    <div class="input-group">
-                        <label>中型犬</label>
-                        <input type="number" id="medium-dogs" placeholder="0" min="0">
-                    </div>
-                    <div class="input-group">
-                        <label>大型犬</label>
-                        <input type="number" id="large-dogs" placeholder="0" min="0">
-                    </div>
-                    <div class="input-group">
-                        <label>新規会員数</label>
-                        <input type="number" id="new-members" placeholder="0" min="0">
-                    </div>
-                </div>
-                
-                <div class="input-group" style="margin-top: 20px;">
-                    <label>当店を知った理由（複数選択可）</label>
-                    <div class="checkbox-group">
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="reason-sns" value="SNS">
-                            <label for="reason-sns">SNS</label>
-                        </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="reason-passing" value="通りがかり">
-                            <label for="reason-passing">通りがかり</label>
-                        </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="reason-referral" value="知人紹介">
-                            <label for="reason-referral">知人紹介</label>
-                        </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="reason-web" value="Web検索">
-                            <label for="reason-web">Web検索</label>
-                        </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="reason-other" value="その他">
-                            <label for="reason-other">その他</label>
-                        </div>
-                    </div>
-                </div>
-                
-                <button class="btn btn-secondary" onclick="saveDogrunData()" style="margin-top: 20px;">💾 保存する</button>
-            </div>
-            
-            <div class="card">
-                <h2>📊 今週のドッグラン集計</h2>
-                <div class="stats-grid" id="dogrun-weekly-stats">
-                    <div class="loading">データを読み込み中...</div>
-                </div>
-            </div>
-            
-            <div class="card">
-                <h2>🌤️ 天気と利用数の関連性</h2>
-                <div id="weather-analysis">
-                    <div class="loading">データを分析中...</div>
-                </div>
-            </div>
-            
-            <div class="card">
-                <h2>📋 入力履歴（直近10件）</h2>
-                <div id="dogrun-history">
-                    <div class="loading">データを読み込み中...</div>
-                </div>
-            </div>
-        </div>
-    </div>
+const STORAGE_KEYS = {
+SALES: “petshop_sales_v2”,
+DOGRUN: “petshop_dogrun_v2”,
+STAFF: “petshop_staff_v2”,
+};
 
-    <script>
-        // 今日の日付を設定
-        document.getElementById('sales-date').valueAsDate = new Date();
-        document.getElementById('dogrun-date').valueAsDate = new Date();
-        
-        // ローカルストレージキー
-        const STORAGE_KEYS = {
-            sales: 'petshop_sales_data',
-            dogrun: 'petshop_dogrun_data'
-        };
-        
-        // ローカルストレージヘルパー関数
-        function saveToStorage(key, data) {
-            localStorage.setItem(key, JSON.stringify(data));
-        }
-        
-        function getFromStorage(key) {
-            const data = localStorage.getItem(key);
-            return data ? JSON.parse(data) : [];
-        }
-        
-        // タブ切り替え
-        function switchTab(tab) {
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-            
-            if (tab === 'sales') {
-                document.querySelector('.tab-btn:nth-child(1)').classList.add('active');
-                document.getElementById('sales-tab').classList.add('active');
-                loadSalesData();
-            } else {
-                document.querySelector('.tab-btn:nth-child(2)').classList.add('active');
-                document.getElementById('dogrun-tab').classList.add('active');
-                loadDogrunData();
-            }
-        }
-        
-        // 販売データ保存
-        function saveSalesData() {
-            const data = {
-                date: document.getElementById('sales-date').value,
-                visitors: parseInt(document.getElementById('visitors').value) || 0,
-                hugs: parseInt(document.getElementById('hugs').value) || 0,
-                quotes: parseInt(document.getElementById('quotes').value) || 0,
-                contracts: parseInt(document.getElementById('contracts').value) || 0,
-                premium: parseInt(document.getElementById('premium').value) || 0,
-                timestamp: new Date().toISOString()
-            };
-            
-            if (!data.date) {
-                alert('日付を選択してください');
-                return;
-            }
-            
-            try {
-                // データをローカルストレージから取得
-                let allData = getFromStorage(STORAGE_KEYS.sales);
-                
-                // 同じ日付のデータがあれば更新、なければ追加
-                const existingIndex = allData.findIndex(item => item.date === data.date);
-                if (existingIndex >= 0) {
-                    allData[existingIndex] = data;
-                } else {
-                    allData.push(data);
-                }
-                
-                // 日付でソート（新しい順）
-                allData.sort((a, b) => new Date(b.date) - new Date(a.date));
-                
-                // ローカルストレージに保存
-                saveToStorage(STORAGE_KEYS.sales, allData);
-                
-                // 成功メッセージ表示
-                const successMsg = document.getElementById('sales-success');
-                successMsg.style.display = 'block';
-                setTimeout(() => successMsg.style.display = 'none', 3000);
-                
-                // データを再読み込み
-                loadSalesData();
-                
-                // フォームをクリア
-                document.getElementById('visitors').value = '';
-                document.getElementById('hugs').value = '';
-                document.getElementById('quotes').value = '';
-                document.getElementById('contracts').value = '';
-                document.getElementById('premium').value = '';
-                
-            } catch (error) {
-                console.error('保存エラー:', error);
-                alert('データの保存に失敗しました。もう一度お試しください。');
-            }
-        }
-        
-        // 販売データ読み込み
-        function loadSalesData() {
-            try {
-                const allData = getFromStorage(STORAGE_KEYS.sales);
-                
-                // 今週の集計
-                displayWeeklyStats(allData);
-                
-                // 予測表示
-                displayPrediction(allData);
-                
-                // 比較表示
-                displayComparison(allData);
-                
-                // 履歴表示
-                displaySalesHistory(allData);
-                
-            } catch (error) {
-                console.error('読み込みエラー:', error);
-                document.getElementById('weekly-stats').innerHTML = '<p style="color: #999;">データの読み込みに失敗しました</p>';
-                document.getElementById('prediction-stats').innerHTML = '<p style="opacity: 0.8;">データの読み込みに失敗しました</p>';
-                document.getElementById('comparison-section').innerHTML = '<p style="color: #999;">データの読み込みに失敗しました</p>';
-                document.getElementById('sales-history').innerHTML = '<p style="color: #999;">データの読み込みに失敗しました</p>';
-            }
-        }
-        
-        // 今週の集計表示
-        function displayWeeklyStats(data) {
-            const today = new Date();
-            const weekAgo = new Date(today);
-            weekAgo.setDate(today.getDate() - 7);
-            
-            const weekData = data.filter(item => {
-                const itemDate = new Date(item.date);
-                return itemDate >= weekAgo && itemDate <= today;
-            });
-            
-            if (weekData.length === 0) {
-                document.getElementById('weekly-stats').innerHTML = '<div class="stat-card" style="grid-column: 1/-1;"><p style="color: #999; text-align: center;">まだデータがありません。上のフォームから入力してください。</p></div>';
-                return;
-            }
-            
-            const totals = weekData.reduce((acc, item) => ({
-                visitors: acc.visitors + item.visitors,
-                hugs: acc.hugs + item.hugs,
-                quotes: acc.quotes + item.quotes,
-                contracts: acc.contracts + item.contracts,
-                premium: acc.premium + item.premium
-            }), { visitors: 0, hugs: 0, quotes: 0, contracts: 0, premium: 0 });
-            
-            document.getElementById('weekly-stats').innerHTML = `
-                <div class="stat-card">
-                    <div class="stat-value">${totals.visitors}</div>
-                    <div class="stat-label">来客数</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value">${totals.hugs}</div>
-                    <div class="stat-label">抱っこ数</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value">${totals.quotes}</div>
-                    <div class="stat-label">見積り配布数</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value">${totals.contracts}</div>
-                    <div class="stat-label">契約数</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value">${totals.premium}</div>
-                    <div class="stat-label">プレミアム加入</div>
-                </div>
-            `;
-        }
-        
-        // 2週間後の予測表示
-        function displayPrediction(data) {
-            if (data.length === 0) {
-                document.getElementById('prediction-stats').innerHTML = '<p style="opacity: 0.8;">データが蓄積されると予測が表示されます</p>';
-                return;
-            }
-            
-            const today = new Date();
-            const weekAgo = new Date(today);
-            weekAgo.setDate(today.getDate() - 7);
-            
-            const weekData = data.filter(item => {
-                const itemDate = new Date(item.date);
-                return itemDate >= weekAgo && itemDate <= today;
-            });
-            
-            if (weekData.length === 0) {
-                document.getElementById('prediction-stats').innerHTML = '<p style="opacity: 0.8;">過去7日間のデータがありません</p>';
-                return;
-            }
-            
-            // 実データから変換率を計算
-            const totals = weekData.reduce((acc, item) => ({
-                visitors: acc.visitors + item.visitors,
-                hugs: acc.hugs + item.hugs,
-                quotes: acc.quotes + item.quotes,
-                contracts: acc.contracts + item.contracts,
-                premium: acc.premium + item.premium
-            }), { visitors: 0, hugs: 0, quotes: 0, contracts: 0, premium: 0 });
-            
-            // 変換率計算（実データがあればそれを使用、なければ標準値）
-            const hugRate = totals.visitors > 0 ? totals.hugs / totals.visitors : 0.35;
-            const quoteRate = totals.hugs > 0 ? totals.quotes / totals.hugs : 0.55;
-            const contractRate = totals.quotes > 0 ? totals.contracts / totals.quotes : 0.25;
-            const premiumRate = totals.contracts > 0 ? totals.premium / totals.contracts : 0.15;
-            
-            // 2週間後の予測（今週の活動が2週間後に結果として出る）
-            const predictedContracts = Math.round(totals.quotes * contractRate);
-            const predictedPremium = Math.round(totals.contracts * premiumRate);
-            const predictedRevenue = predictedContracts * 150000 + predictedPremium * 5000; // 仮の単価
-            
-            document.getElementById('prediction-stats').innerHTML = `
-                <div class="prediction-item">
-                    <div class="prediction-value">${predictedContracts}</div>
-                    <div class="prediction-label">契約見込み</div>
-                </div>
-                <div class="prediction-item">
-                    <div class="prediction-value">${predictedPremium}</div>
-                    <div class="prediction-label">プレミアム見込み</div>
-                </div>
-                <div class="prediction-item">
-                    <div class="prediction-value">${Math.round(contractRate * 100)}%</div>
-                    <div class="prediction-label">契約率</div>
-                </div>
-                <div class="prediction-item">
-                    <div class="prediction-value">${Math.round(premiumRate * 100)}%</div>
-                    <div class="prediction-label">プレミアム率</div>
-                </div>
-            `;
-        }
-        
-        // 過去データとの比較
-        function displayComparison(data) {
-            if (data.length === 0) {
-                document.getElementById('comparison-section').innerHTML = '<p style="color: #999;">データがまだありません</p>';
-                return;
-            }
-            
-            const today = new Date();
-            const thisWeekStart = new Date(today);
-            thisWeekStart.setDate(today.getDate() - 7);
-            
-            const lastWeekStart = new Date(thisWeekStart);
-            lastWeekStart.setDate(lastWeekStart.getDate() - 7);
-            
-            const thisWeek = data.filter(item => {
-                const itemDate = new Date(item.date);
-                return itemDate >= thisWeekStart && itemDate <= today;
-            });
-            
-            const lastWeek = data.filter(item => {
-                const itemDate = new Date(item.date);
-                return itemDate >= lastWeekStart && itemDate < thisWeekStart;
-            });
-            
-            if (thisWeek.length === 0) {
-                document.getElementById('comparison-section').innerHTML = '<p style="color: #999;">今週のデータがまだありません</p>';
-                return;
-            }
-            
-            if (lastWeek.length === 0) {
-                document.getElementById('comparison-section').innerHTML = '<p style="color: #999;">比較データがまだありません（2週間以上のデータが必要です）</p>';
-                return;
-            }
-            
-            const thisWeekTotals = thisWeek.reduce((acc, item) => ({
-                visitors: acc.visitors + item.visitors,
-                contracts: acc.contracts + item.contracts,
-                premium: acc.premium + item.premium
-            }), { visitors: 0, contracts: 0, premium: 0 });
-            
-            const lastWeekTotals = lastWeek.reduce((acc, item) => ({
-                visitors: acc.visitors + item.visitors,
-                contracts: acc.contracts + item.contracts,
-                premium: acc.premium + item.premium
-            }), { visitors: 0, contracts: 0, premium: 0 });
-            
-            function getTrend(current, previous) {
-                if (previous === 0) return { class: 'neutral', text: '初回' };
-                const diff = ((current - previous) / previous * 100).toFixed(1);
-                if (diff > 0) return { class: 'up', text: `+${diff}%` };
-                if (diff < 0) return { class: 'down', text: `${diff}%` };
-                return { class: 'neutral', text: '±0%' };
-            }
-            
-            const visitorsTrend = getTrend(thisWeekTotals.visitors, lastWeekTotals.visitors);
-            const contractsTrend = getTrend(thisWeekTotals.contracts, lastWeekTotals.contracts);
-            const premiumTrend = getTrend(thisWeekTotals.premium, lastWeekTotals.premium);
-            
-            document.getElementById('comparison-section').innerHTML = `
-                <div class="comparison-card">
-                    <div class="comparison-title">来客数</div>
-                    <div style="font-size: 1.5em; font-weight: 700;">${thisWeekTotals.visitors}</div>
-                    <span class="trend ${visitorsTrend.class}">${visitorsTrend.text}</span>
-                    <div style="margin-top: 10px; color: #999; font-size: 0.9em;">先週: ${lastWeekTotals.visitors}</div>
-                </div>
-                <div class="comparison-card">
-                    <div class="comparison-title">契約数</div>
-                    <div style="font-size: 1.5em; font-weight: 700;">${thisWeekTotals.contracts}</div>
-                    <span class="trend ${contractsTrend.class}">${contractsTrend.text}</span>
-                    <div style="margin-top: 10px; color: #999; font-size: 0.9em;">先週: ${lastWeekTotals.contracts}</div>
-                </div>
-                <div class="comparison-card">
-                    <div class="comparison-title">プレミアム加入</div>
-                    <div style="font-size: 1.5em; font-weight: 700;">${thisWeekTotals.premium}</div>
-                    <span class="trend ${premiumTrend.class}">${premiumTrend.text}</span>
-                    <div style="margin-top: 10px; color: #999; font-size: 0.9em;">先週: ${lastWeekTotals.premium}</div>
-                </div>
-            `;
-        }
-        
-        // 履歴表示
-        function displaySalesHistory(data) {
-            if (data.length === 0) {
-                document.getElementById('sales-history').innerHTML = '<p style="color: #999;">データがまだありません</p>';
-                return;
-            }
-            
-            const recent = data.slice(0, 10);
-            const html = `
-                <table>
-                    <thead>
-                        <tr>
-                            <th>日付</th>
-                            <th>来客数</th>
-                            <th>抱っこ数</th>
-                            <th>見積り</th>
-                            <th>契約</th>
-                            <th>プレミアム</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${recent.map(item => `
-                            <tr>
-                                <td>${item.date}</td>
-                                <td>${item.visitors}</td>
-                                <td>${item.hugs}</td>
-                                <td>${item.quotes}</td>
-                                <td>${item.contracts}</td>
-                                <td>${item.premium}</td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-            `;
-            document.getElementById('sales-history').innerHTML = html;
-        }
-        
-        // ドッグランデータ保存
-        function saveDogrunData() {
-            const reasons = [];
-            document.querySelectorAll('.checkbox-item input[type="checkbox"]:checked').forEach(cb => {
-                reasons.push(cb.value);
-            });
-            
-            const data = {
-                date: document.getElementById('dogrun-date').value,
-                families: parseInt(document.getElementById('families').value) || 0,
-                totalDogs: parseInt(document.getElementById('total-dogs').value) || 0,
-                weather: document.getElementById('weather').value,
-                temperature: parseFloat(document.getElementById('temperature').value) || 0,
-                smallDogs: parseInt(document.getElementById('small-dogs').value) || 0,
-                mediumDogs: parseInt(document.getElementById('medium-dogs').value) || 0,
-                largeDogs: parseInt(document.getElementById('large-dogs').value) || 0,
-                newMembers: parseInt(document.getElementById('new-members').value) || 0,
-                reasons: reasons,
-                timestamp: new Date().toISOString()
-            };
-            
-            if (!data.date) {
-                alert('日付を選択してください');
-                return;
-            }
-            
-            try {
-                // データをローカルストレージから取得
-                let allData = getFromStorage(STORAGE_KEYS.dogrun);
-                
-                const existingIndex = allData.findIndex(item => item.date === data.date);
-                if (existingIndex >= 0) {
-                    allData[existingIndex] = data;
-                } else {
-                    allData.push(data);
-                }
-                
-                allData.sort((a, b) => new Date(b.date) - new Date(a.date));
-                
-                // ローカルストレージに保存
-                saveToStorage(STORAGE_KEYS.dogrun, allData);
-                
-                const successMsg = document.getElementById('dogrun-success');
-                successMsg.style.display = 'block';
-                setTimeout(() => successMsg.style.display = 'none', 3000);
-                
-                loadDogrunData();
-                
-                // フォームをクリア
-                document.getElementById('families').value = '';
-                document.getElementById('total-dogs').value = '';
-                document.getElementById('weather').value = '';
-                document.getElementById('temperature').value = '';
-                document.getElementById('small-dogs').value = '';
-                document.getElementById('medium-dogs').value = '';
-                document.getElementById('large-dogs').value = '';
-                document.getElementById('new-members').value = '';
-                document.querySelectorAll('.checkbox-item input[type="checkbox"]').forEach(cb => cb.checked = false);
-                
-            } catch (error) {
-                console.error('保存エラー:', error);
-                alert('データの保存に失敗しました。もう一度お試しください。');
-            }
-        }
-        
-        // ドッグランデータ読み込み
-        function loadDogrunData() {
-            try {
-                const allData = getFromStorage(STORAGE_KEYS.dogrun);
-                
-                displayDogrunWeeklyStats(allData);
-                displayWeatherAnalysis(allData);
-                displayDogrunHistory(allData);
-                
-            } catch (error) {
-                console.error('読み込みエラー:', error);
-                document.getElementById('dogrun-weekly-stats').innerHTML = '<p style="color: #999;">データの読み込みに失敗しました</p>';
-                document.getElementById('weather-analysis').innerHTML = '<p style="color: #999;">データの読み込みに失敗しました</p>';
-                document.getElementById('dogrun-history').innerHTML = '<p style="color: #999;">データの読み込みに失敗しました</p>';
-            }
-        }
-        
-        // ドッグラン週間集計
-        function displayDogrunWeeklyStats(data) {
-            const today = new Date();
-            const weekAgo = new Date(today);
-            weekAgo.setDate(today.getDate() - 7);
-            
-            const weekData = data.filter(item => {
-                const itemDate = new Date(item.date);
-                return itemDate >= weekAgo && itemDate <= today;
-            });
-            
-            if (weekData.length === 0) {
-                document.getElementById('dogrun-weekly-stats').innerHTML = '<div class="stat-card" style="grid-column: 1/-1;"><p style="color: #999; text-align: center;">まだデータがありません。上のフォームから入力してください。</p></div>';
-                return;
-            }
-            
-            const totals = weekData.reduce((acc, item) => ({
-                families: acc.families + item.families,
-                totalDogs: acc.totalDogs + item.totalDogs,
-                newMembers: acc.newMembers + item.newMembers,
-                smallDogs: acc.smallDogs + item.smallDogs,
-                mediumDogs: acc.mediumDogs + item.mediumDogs,
-                largeDogs: acc.largeDogs + item.largeDogs
-            }), { families: 0, totalDogs: 0, newMembers: 0, smallDogs: 0, mediumDogs: 0, largeDogs: 0 });
-            
-            document.getElementById('dogrun-weekly-stats').innerHTML = `
-                <div class="stat-card">
-                    <div class="stat-value">${totals.families}</div>
-                    <div class="stat-label">利用家族数</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value">${totals.totalDogs}</div>
-                    <div class="stat-label">利用頭数</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value">${totals.smallDogs}</div>
-                    <div class="stat-label">小型犬</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value">${totals.mediumDogs}</div>
-                    <div class="stat-label">中型犬</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value">${totals.largeDogs}</div>
-                    <div class="stat-label">大型犬</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value">${totals.newMembers}</div>
-                    <div class="stat-label">新規会員</div>
-                </div>
-            `;
-        }
-        
-        // 天気と利用数の分析
-        function displayWeatherAnalysis(data) {
-            if (data.length === 0) {
-                document.getElementById('weather-analysis').innerHTML = '<p style="color: #999;">データがまだありません</p>';
-                return;
-            }
-            
-            const weatherStats = {};
-            data.forEach(item => {
-                if (!weatherStats[item.weather]) {
-                    weatherStats[item.weather] = { count: 0, totalFamilies: 0, totalDogs: 0 };
-                }
-                weatherStats[item.weather].count++;
-                weatherStats[item.weather].totalFamilies += item.families;
-                weatherStats[item.weather].totalDogs += item.totalDogs;
-            });
-            
-            let html = '<div class="stats-grid">';
-            for (const [weather, stats] of Object.entries(weatherStats)) {
-                const avgFamilies = (stats.totalFamilies / stats.count).toFixed(1);
-                const avgDogs = (stats.totalDogs / stats.count).toFixed(1);
-                html += `
-                    <div class="stat-card">
-                        <div style="font-size: 2em; margin-bottom: 10px;">${weather}</div>
-                        <div style="font-size: 1.3em; font-weight: 600;">平均 ${avgFamilies} 家族</div>
-                        <div style="color: #999; font-size: 0.9em; margin-top: 5px;">${avgDogs} 頭 / ${stats.count} 日間</div>
-                    </div>
-                `;
-            }
-            html += '</div>';
-            document.getElementById('weather-analysis').innerHTML = html;
-        }
-        
-        // ドッグラン履歴
-        function displayDogrunHistory(data) {
-            if (data.length === 0) {
-                document.getElementById('dogrun-history').innerHTML = '<p style="color: #999;">データがまだありません</p>';
-                return;
-            }
-            
-            const recent = data.slice(0, 10);
-            const html = `
-                <table>
-                    <thead>
-                        <tr>
-                            <th>日付</th>
-                            <th>家族数</th>
-                            <th>頭数</th>
-                            <th>天気</th>
-                            <th>気温</th>
-                            <th>新規会員</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${recent.map(item => `
-                            <tr>
-                                <td>${item.date}</td>
-                                <td>${item.families}</td>
-                                <td>${item.totalDogs}</td>
-                                <td>${item.weather}</td>
-                                <td>${item.temperature}°C</td>
-                                <td>${item.newMembers}</td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-            `;
-            document.getElementById('dogrun-history').innerHTML = html;
-        }
-        
-        // 初期読み込み
-        loadSalesData();
-        
-        // データエクスポート機能
-        function exportData(type) {
-            try {
-                const key = type === 'sales' ? STORAGE_KEYS.sales : STORAGE_KEYS.dogrun;
-                const data = getFromStorage(key);
-                
-                if (data.length === 0) {
-                    alert('エクスポートするデータがありません');
-                    return;
-                }
-                
-                // JSONファイルとしてダウンロード
-                const dataStr = JSON.stringify(data, null, 2);
-                const dataBlob = new Blob([dataStr], { type: 'application/json' });
-                const url = URL.createObjectURL(dataBlob);
-                const link = document.createElement('a');
-                link.href = url;
-                link.download = `petshop_${type}_data_${new Date().toISOString().split('T')[0]}.json`;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                URL.revokeObjectURL(url);
-                
-                alert(`データをエクスポートしました！\n${data.length}件のデータが保存されました。`);
-            } catch (error) {
-                console.error('エクスポートエラー:', error);
-                alert('データのエクスポートに失敗しました');
-            }
-        }
-        
-        // データインポート機能
-        function importData(type, input) {
-            const file = input.files[0];
-            if (!file) return;
-            
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const importedData = JSON.parse(e.target.result);
-                    
-                    if (!Array.isArray(importedData)) {
-                        alert('無効なデータ形式です');
-                        return;
-                    }
-                    
-                    const key = type === 'sales' ? STORAGE_KEYS.sales : STORAGE_KEYS.dogrun;
-                    const existingData = getFromStorage(key);
-                    
-                    // 確認ダイアログ
-                    const message = existingData.length > 0 
-                        ? `現在のデータ（${existingData.length}件）に、インポートするデータ（${importedData.length}件）を追加しますか？\n※同じ日付のデータは上書きされます`
-                        : `${importedData.length}件のデータをインポートしますか？`;
-                    
-                    if (!confirm(message)) {
-                        input.value = '';
-                        return;
-                    }
-                    
-                    // データをマージ（同じ日付は上書き）
-                    const mergedData = [...existingData];
-                    importedData.forEach(newItem => {
-                        const existingIndex = mergedData.findIndex(item => item.date === newItem.date);
-                        if (existingIndex >= 0) {
-                            mergedData[existingIndex] = newItem;
-                        } else {
-                            mergedData.push(newItem);
-                        }
-                    });
-                    
-                    // 日付でソート
-                    mergedData.sort((a, b) => new Date(b.date) - new Date(a.date));
-                    
-                    // 保存
-                    saveToStorage(key, mergedData);
-                    
-                    // 画面を更新
-                    if (type === 'sales') {
-                        loadSalesData();
-                    } else {
-                        loadDogrunData();
-                    }
-                    
-                    alert(`データのインポートが完了しました！\n合計: ${mergedData.length}件`);
-                    
-                } catch (error) {
-                    console.error('インポートエラー:', error);
-                    alert('データのインポートに失敗しました。正しいファイルを選択してください。');
-                }
-                
-                // ファイル選択をリセット
-                input.value = '';
-            };
-            
-            reader.readAsText(file);
-        }
-    </script>
-    <script>
-async function sendToSheet(data) {
-  await fetch("https://script.google.com/macros/s/AKfycbyGh5Z6OLX-ZZmqgHwvvEDk8fSQxEQflD3FtVXKe4Bzcwf6WeHARM5_f3HMM-0nBOMI2Q/exec", {
-    method: "POST",
-    body: JSON.stringify(data)
-  });
+const DEFAULT_STAFF = [“スタッフA”, “スタッフB”, “スタッフC”, “スタッフD”, “スタッフE”];
+
+const WEATHER_OPTIONS = [“晴れ ”, “曇り ”, “雨 ”, “雪 ”];
+const KNOWN_BY_OPTIONS = [“SNS”, “通りがかり”, “紹介”, “チラシ”, “リピート”, “その他”];
+
+const today = () => new Date().toISOString().split(“T”)[0];
+const formatDate = (d) => d.replace(/-/g, “/”);
+const getWeek = (dateStr) => {
+const d = new Date(dateStr);
+const jan1 = new Date(d.getFullYear(), 0, 1);
+return Math.ceil(((d - jan1) / 86400000 + jan1.getDay() + 1) / 7);
+};
+const getMonth = (dateStr) => dateStr.slice(0, 7);
+
+// ─── Storage helpers ───────────────────────────────────────────────
+async function loadData(key) {
+try {
+const r = await window.storage.get(key);
+return r ? JSON.parse(r.value) : null;
+} catch { return null; }
 }
-</script>
-</body>
-</html>
+async function saveData(key, value) {
+try { await window.storage.set(key, JSON.stringify(value)); } catch {}
+}
+
+// ─── Colour palette ───────────────────────────────────────────────
+const C = {
+bg: “#0f1117”,
+card: “#181c27”,
+cardBorder: “#252a3a”,
+accent: “#6c8ef5”,
+accent2: “#f5a623”,
+dogrun: “#3ecf8e”,
+text: “#e8eaf6”,
+muted: “#7b82a0”,
+danger: “#f56c6c”,
+success: “#52c41a”,
+};
+
+const css = `@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Space+Grotesk:wght@500;700&display=swap'); *{box-sizing:border-box;margin:0;padding:0} body{background:${C.bg};color:${C.text};font-family:'Noto Sans JP',sans-serif;min-height:100vh} .app{max-width:480px;margin:0 auto;padding:0 0 80px} .header{background:linear-gradient(135deg,#1a1f35 0%,#252a45 100%);padding:20px 20px 16px;border-bottom:1px solid ${C.cardBorder};position:sticky;top:0;z-index:100} .header-title{font-family:'Space Grotesk',sans-serif;font-size:18px;font-weight:700;color:${C.text};display:flex;align-items:center;gap:8px} .tab-bar{display:flex;gap:0;background:${C.card};border-bottom:1px solid ${C.cardBorder};position:sticky;top:61px;z-index:99} .tab{flex:1;padding:12px 4px;text-align:center;font-size:12px;font-weight:500;color:${C.muted};cursor:pointer;border-bottom:2px solid transparent;transition:all .2s} .tab.active{color:${C.accent};border-bottom-color:${C.accent}} .tab.dogrun-tab.active{color:${C.dogrun};border-bottom-color:${C.dogrun}} .section{padding:16px} .card{background:${C.card};border:1px solid ${C.cardBorder};border-radius:14px;padding:16px;margin-bottom:14px} .card-title{font-size:14px;font-weight:700;color:${C.text};margin-bottom:14px;display:flex;align-items:center;gap:6px} .field-label{font-size:12px;color:${C.muted};margin-bottom:6px;font-weight:500} .input{width:100%;background:#1e2333;border:1px solid ${C.cardBorder};border-radius:8px;padding:10px 12px;color:${C.text};font-size:14px;font-family:'Noto Sans JP',sans-serif;outline:none;transition:border-color .2s} .input:focus{border-color:${C.accent}} .select{width:100%;background:#1e2333;border:1px solid ${C.cardBorder};border-radius:8px;padding:10px 12px;color:${C.text};font-size:14px;font-family:'Noto Sans JP',sans-serif;outline:none;-webkit-appearance:none} .field-group{margin-bottom:12px} .btn{width:100%;padding:12px;border-radius:10px;border:none;font-size:14px;font-weight:700;font-family:'Noto Sans JP',sans-serif;cursor:pointer;transition:opacity .15s} .btn-primary{background:linear-gradient(135deg,${C.accent},#8b6cf7);color:#fff} .btn-dogrun{background:linear-gradient(135deg,${C.dogrun},#26a671);color:#fff} .btn-export{background:linear-gradient(135deg,#06b6d4,#3b82f6);color:#fff;margin-bottom:8px} .btn-danger{background:linear-gradient(135deg,${C.danger},#c0392b);color:#fff} .btn:active{opacity:.75} .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px} .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px} .stat-box{background:#1e2333;border-radius:10px;padding:12px;text-align:center} .stat-val{font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:700;color:${C.accent}} .stat-val.green{color:${C.dogrun}} .stat-label{font-size:10px;color:${C.muted};margin-top:2px} .predict-box{background:linear-gradient(135deg,#1a2040,#252a55);border:1px solid #3a4070;border-radius:12px;padding:14px;margin-bottom:10px} .predict-title{font-size:12px;color:#8b9de8;margin-bottom:8px} .predict-val{font-family:'Space Grotesk',sans-serif;font-size:28px;font-weight:700;color:${C.accent}} .predict-sub{font-size:11px;color:${C.muted};margin-top:4px} .staff-row{display:flex;align-items:center;gap:8px;background:#1e2333;border-radius:8px;padding:10px;margin-bottom:8px} .staff-name{font-size:13px;font-weight:500;color:${C.text};min-width:70px;flex-shrink:0} .staff-inputs{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;flex:1} .mini-input{background:#252a3a;border:1px solid ${C.cardBorder};border-radius:6px;padding:6px 4px;color:${C.text};font-size:12px;font-family:'Noto Sans JP',sans-serif;outline:none;text-align:center;width:100%} .mini-input:focus{border-color:${C.accent}} .mini-label{font-size:9px;color:${C.muted};text-align:center;margin-bottom:3px} .history-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid ${C.cardBorder};font-size:13px} .history-row:last-child{border-bottom:none} .tag{display:inline-block;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:500} .tag-blue{background:#1e3a5f;color:#6bb3f5} .tag-green{background:#1a3d2e;color:#4dd4a0} .month-header{background:#1e2333;border-radius:8px;padding:10px 12px;margin-bottom:8px;font-size:13px;font-weight:700;color:${C.accent};display:flex;justify-content:space-between;align-items:center;cursor:pointer} .checkbox-group{display:flex;flex-wrap:wrap;gap:8px} .checkbox-item{display:flex;align-items:center;gap:4px;font-size:12px;color:${C.muted};cursor:pointer} .checkbox-item input{accent-color:${C.dogrun}} .alert{background:#1a2a1a;border:1px solid #2d5a2d;border-radius:8px;padding:10px 12px;font-size:12px;color:${C.dogrun};margin-bottom:10px} .alert-warn{background:#2a1a1a;border:1px solid #5a2d2d;color:${C.danger}} .staff-header{display:grid;grid-template-columns:70px repeat(7,1fr);gap:4px;margin-bottom:4px} .staff-total-row{display:grid;grid-template-columns:70px repeat(7,1fr);gap:4px;background:#252a3a;border-radius:8px;padding:8px 10px;margin-top:4px} .total-cell{font-size:12px;font-weight:700;color:${C.accent2};text-align:center} .week-block{border-left:3px solid ${C.dogrun};padding-left:12px;margin-bottom:12px} .week-title{font-size:12px;color:${C.dogrun};font-weight:700;margin-bottom:6px} .scroll-x{overflow-x:auto;-webkit-overflow-scrolling:touch}`;
+
+const STAFF_FIELDS = [“声かけ”,“抱っこ”,“見積”,“契約”,“口コミ”,“プレミ”,“来客”];
+const STAFF_FIELD_KEYS = [“voice”,“hold”,“estimate”,“contract”,“review”,“premium”,“visitor”];
+
+export default function App() {
+const [tab, setTab] = useState(“sales”);
+const [subTab, setSubTab] = useState(“input”); // input | week | month | predict | settings
+const [dogSubTab, setDogSubTab] = useState(“input”); // input | week | month
+
+const [staff, setStaff] = useState(DEFAULT_STAFF);
+const [staffInput, setStaffInput] = useState(DEFAULT_STAFF.join(”\n”));
+
+// Sales data: { [date]: { store: {visitor,voiceAll,holdAll,…}, staff: { [name]: {voice,hold,…} } } }
+const [salesData, setSalesData] = useState({});
+// Dogrun data: { [date]: { families, dogs, weather, temp, small, medium, large, members, knownBy:[], notes } }
+const [dogData, setDogData] = useState({});
+
+// Today’s sales input
+const [saleDate, setSaleDate] = useState(today());
+const [storeRow, setStoreRow] = useState({ visitor: 0, voiceAll: 0, holdAll: 0, estimate: 0, contract: 0, review: 0, premium: 0 });
+const [staffRows, setStaffRows] = useState({});
+
+// Today’s dogrun input
+const [dogDate, setDogDate] = useState(today());
+const [dogRow, setDogRow] = useState({ families: 0, dogs: 0, weather: “”, temp: 0, small: 0, medium: 0, large: 0, members: 0, knownBy: [], notes: “” });
+
+const [monthExpanded, setMonthExpanded] = useState({});
+
+useEffect(() => {
+(async () => {
+const s = await loadData(STORAGE_KEYS.SALES);
+const d = await loadData(STORAGE_KEYS.DOGRUN);
+const st = await loadData(STORAGE_KEYS.STAFF);
+if (s) setSalesData(s);
+if (d) setDogData(d);
+if (st) { setStaff(st); setStaffInput(st.join(”\n”)); }
+})();
+}, []);
+
+// init staffRows when staff or date changes
+useEffect(() => {
+const existing = salesData[saleDate]?.staff || {};
+const rows = {};
+staff.forEach(n => {
+rows[n] = existing[n] || { voice: 0, hold: 0, estimate: 0, contract: 0, review: 0, premium: 0, visitor: 0 };
+});
+setStaffRows(rows);
+const st = salesData[saleDate]?.store || { visitor: 0, voiceAll: 0, holdAll: 0, estimate: 0, contract: 0, review: 0, premium: 0 };
+setStoreRow(st);
+}, [saleDate, staff, salesData]);
+
+useEffect(() => {
+const existing = dogData[dogDate] || { families: 0, dogs: 0, weather: “”, temp: 0, small: 0, medium: 0, large: 0, members: 0, knownBy: [], notes: “” };
+setDogRow(existing);
+}, [dogDate, dogData]);
+
+// ── Save sales ──
+const saveSales = async () => {
+const updated = {
+…salesData,
+[saleDate]: { store: storeRow, staff: staffRows }
+};
+setSalesData(updated);
+await saveData(STORAGE_KEYS.SALES, updated);
+alert(“保存しました！”);
+};
+
+// ── Save dogrun ──
+const saveDog = async () => {
+const updated = { …dogData, [dogDate]: dogRow };
+setDogData(updated);
+await saveData(STORAGE_KEYS.DOGRUN, updated);
+alert(“保存しました！”);
+};
+
+// ── Save staff settings ──
+const saveStaff = async () => {
+const list = staffInput.split(”\n”).map(s => s.trim()).filter(Boolean).slice(0, 10);
+setStaff(list);
+await saveData(STORAGE_KEYS.STAFF, list);
+alert(“スタッフを保存しました！”);
+};
+
+// ── Aggregation helpers ──
+const salesByMonth = () => {
+const m = {};
+Object.entries(salesData).forEach(([date, v]) => {
+const mo = getMonth(date);
+if (!m[mo]) m[mo] = { visitor: 0, voiceAll: 0, holdAll: 0, estimate: 0, contract: 0, review: 0, premium: 0, days: 0 };
+const s = v.store || {};
+Object.keys(m[mo]).forEach(k => { if (k !== “days”) m[mo][k] += (s[k] || 0); });
+m[mo].days++;
+});
+return m;
+};
+
+const salesByWeek = () => {
+const w = {};
+Object.entries(salesData).forEach(([date, v]) => {
+const wk = `${date.slice(0, 4)}-W${String(getWeek(date)).padStart(2, "0")}`;
+if (!w[wk]) w[wk] = { visitor: 0, voiceAll: 0, holdAll: 0, estimate: 0, contract: 0, review: 0, premium: 0, days: 0 };
+const s = v.store || {};
+Object.keys(w[wk]).forEach(k => { if (k !== “days”) w[wk][k] += (s[k] || 0); });
+w[wk].days++;
+});
+return w;
+};
+
+const staffByMonth = (monthStr) => {
+const result = {};
+staff.forEach(n => {
+result[n] = { voice: 0, hold: 0, estimate: 0, contract: 0, review: 0, premium: 0, visitor: 0 };
+});
+Object.entries(salesData).filter(([d]) => getMonth(d) === monthStr).forEach(([, v]) => {
+const sr = v.staff || {};
+staff.forEach(n => {
+if (sr[n]) STAFF_FIELD_KEYS.forEach(k => { result[n][k] += (sr[n][k] || 0); });
+});
+});
+return result;
+};
+
+// 2週間後予測
+const predict2weeks = () => {
+const entries = Object.entries(salesData).sort(([a], [b]) => b.localeCompare(a)).slice(0, 14);
+if (entries.length === 0) return null;
+const days = entries.length;
+const totals = { visitor: 0, voiceAll: 0, holdAll: 0, estimate: 0, contract: 0, review: 0, premium: 0 };
+entries.forEach(([, v]) => {
+const s = v.store || {};
+Object.keys(totals).forEach(k => { totals[k] += (s[k] || 0); });
+});
+const avg = {};
+Object.keys(totals).forEach(k => { avg[k] = totals[k] / days; });
+const pred = {};
+Object.keys(avg).forEach(k => { pred[k] = Math.round(avg[k] * 14); });
+const holdRate = totals.voiceAll > 0 ? (totals.holdAll / totals.voiceAll * 100).toFixed(1) : 0;
+const contractRate = totals.holdAll > 0 ? (totals.contract / totals.holdAll * 100).toFixed(1) : 0;
+return { pred, holdRate, contractRate, days };
+};
+
+// Dogrun aggregation
+const dogByMonth = () => {
+const m = {};
+Object.entries(dogData).forEach(([date, v]) => {
+const mo = getMonth(date);
+if (!m[mo]) m[mo] = { families: 0, dogs: 0, small: 0, medium: 0, large: 0, members: 0, days: 0, weatherCount: {} };
+m[mo].families += (v.families || 0);
+m[mo].dogs += (v.dogs || 0);
+m[mo].small += (v.small || 0);
+m[mo].medium += (v.medium || 0);
+m[mo].large += (v.large || 0);
+m[mo].members += (v.members || 0);
+m[mo].days++;
+const w = v.weather || “不明”;
+m[mo].weatherCount[w] = (m[mo].weatherCount[w] || 0) + 1;
+});
+return m;
+};
+
+const dogByWeek = () => {
+const w = {};
+Object.entries(dogData).forEach(([date, v]) => {
+const wk = `${date.slice(0, 4)}-W${String(getWeek(date)).padStart(2, "0")}`;
+if (!w[wk]) w[wk] = { families: 0, dogs: 0, small: 0, medium: 0, large: 0, members: 0, days: 0 };
+w[wk].families += (v.families || 0);
+w[wk].dogs += (v.dogs || 0);
+w[wk].small += (v.small || 0);
+w[wk].medium += (v.medium || 0);
+w[wk].large += (v.large || 0);
+w[wk].members += (v.members || 0);
+w[wk].days++;
+});
+return w;
+};
+
+// ── Export ──
+const exportCSV = (data, filename) => {
+const rows = [[“日付”, …Object.keys(Object.values(data)[0] || {})]];
+Object.entries(data).sort().forEach(([d, v]) => rows.push([d, …Object.values(v)]));
+const csv = rows.map(r => r.join(”,”)).join(”\n”);
+const blob = new Blob([”\uFEFF” + csv], { type: “text/csv;charset=utf-8;” });
+const url = URL.createObjectURL(blob);
+const a = document.createElement(“a”); a.href = url; a.download = filename; a.click();
+};
+
+const exportSalesCSV = () => {
+const flat = {};
+Object.entries(salesData).sort().forEach(([d, v]) => {
+flat[d] = { …(v.store || {}) };
+staff.forEach(n => {
+const sr = v.staff?.[n] || {};
+STAFF_FIELD_KEYS.forEach(k => { flat[d][`${n}_${k}`] = sr[k] || 0; });
+});
+});
+exportCSV(flat, “sales_data.csv”);
+};
+
+const updateStaffRow = (name, key, val) => {
+setStaffRows(prev => ({ …prev, [name]: { …prev[name], [key]: Number(val) || 0 } }));
+};
+
+const staffColTotals = () => {
+const t = { voice: 0, hold: 0, estimate: 0, contract: 0, review: 0, premium: 0, visitor: 0 };
+staff.forEach(n => { STAFF_FIELD_KEYS.forEach(k => { t[k] += (staffRows[n]?.[k] || 0); }); });
+return t;
+};
+
+const prediction = predict2weeks();
+
+// ═══════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════
+return (
+<>
+<style>{css}</style>
+<div className="app">
+{/* Header */}
+<div className="header">
+<div className="header-title"> ペットショップ活動管理</div>
+</div>
+
+```
+ {/* Main tabs */}
+ <div className="tab-bar">
+ <div className={`tab ${tab === "sales" ? "active" : ""}`} onClick={() => setTab("sales")}>販売・サブスク</div>
+ <div className={`tab dogrun-tab ${tab === "dogrun" ? "active" : ""}`} onClick={() => setTab("dogrun")}> ドッグラン</div>
+ <div className={`tab ${tab === "settings" ? "active" : ""}`} onClick={() => setTab("settings")}> 設定</div>
+ </div>
+
+ {/* ═══ SALES TAB ═══ */}
+ {tab === "sales" && (
+ <>
+ <div className="tab-bar" style={{ top: 109 }}>
+ {["input","week","month","predict"].map(t2 => (
+ <div key={t2} className={`tab ${subTab === t2 ? "active" : ""}`} onClick={() => setSubTab(t2)}>
+ {t2 === "input" ? "入力" : t2 === "week" ? "今週" : t2 === "month" ? "月別" : "予測"}
+ </div>
+ ))}
+ </div>
+
+ <div className="section" style={{ paddingTop: 14 }}>
+ {/* ─ Input ─ */}
+ {subTab === "input" && (
+ <>
+ <div className="card">
+ <div className="card-title"> 日付</div>
+ <input type="date" className="input" value={saleDate} onChange={e => setSaleDate(e.target.value)} />
+ </div>
+
+ {/* Store totals */}
+ <div className="card">
+ <div className="card-title"> 店舗合計（任意）</div>
+ <div className="grid2">
+ {[["来客数","visitor"],["声かけ数","voiceAll"],["抱っこ数","holdAll"],["見積り配布","estimate"],["契約数","contract"],["口コミ数","review"],["プレミアム","premium"]].map(([label,key]) => (
+ <div className="field-group" key={key}>
+ <div className="field-label">{label}</div>
+ <input type="number" className="input" min="0" value={storeRow[key]} onChange={e => setStoreRow(p => ({ ...p, [key]: Number(e.target.value) || 0 }))} />
+ </div>
+ ))}
+ </div>
+ </div>
+
+ {/* Staff rows */}
+ <div className="card">
+ <div className="card-title"> スタッフ別入力</div>
+ <div className="scroll-x">
+ <div className="staff-header">
+ <div style={{ fontSize: 9, color: C.muted }}></div>
+ {STAFF_FIELDS.map(f => <div key={f} className="mini-label">{f}</div>)}
+ </div>
+ {staff.map(name => (
+ <div className="staff-row" key={name}>
+ <div className="staff-name">{name}</div>
+ <div className="staff-inputs">
+ {STAFF_FIELD_KEYS.map(k => (
+ <input key={k} type="number" className="mini-input" min="0"
+ value={staffRows[name]?.[k] || 0}
+ onChange={e => updateStaffRow(name, k, e.target.value)} />
+ ))}
+ </div>
+ </div>
+ ))}
+ {/* Total row */}
+ {staff.length > 0 && (() => {
+ const t = staffColTotals();
+ return (
+ <div className="staff-total-row">
+ <div className="total-cell" style={{ fontSize: 10, color: C.muted, textAlign: "left" }}>合計</div>
+ {STAFF_FIELD_KEYS.map(k => <div key={k} className="total-cell">{t[k]}</div>)}
+ </div>
+ );
+ })()}
+ </div>
+ {/* Staff rate cards */}
+ <div style={{ marginTop: 12 }}>
+ <div style={{ fontSize: 12, color: C.accent2, fontWeight: 700, marginBottom: 8 }}> スタッフ別 転換率</div>
+ {staff.map(n => {
+ const r = staffRows[n] || {};
+ const holdR = r.voice > 0 ? (r.hold / r.voice * 100).toFixed(0) : "-";
+ const estR = r.hold > 0 ? (r.estimate / r.hold * 100).toFixed(0) : "-";
+ const ctR = r.hold > 0 ? (r.contract / r.hold * 100).toFixed(0) : "-";
+ const hasData = r.voice > 0 || r.hold > 0;
+ return (
+ <div key={n} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "#1e2333", borderRadius: 8, padding: "8px 10px", marginBottom: 6 }}>
+ <div style={{ fontSize: 12, color: C.text, fontWeight: 500, minWidth: 60 }}>{n}</div>
+ <div style={{ display: "flex", gap: 8 }}>
+ <div style={{ textAlign: "center" }}>
+ <div style={{ fontSize: 15, fontWeight: 700, color: hasData ? C.accent : C.muted }}>{holdR}{holdR !== "-" ? "%" : ""}</div>
+ <div style={{ fontSize: 9, color: C.muted }}>抱っこ率</div>
+ </div>
+ <div style={{ width: 1, background: C.cardBorder }} />
+ <div style={{ textAlign: "center" }}>
+ <div style={{ fontSize: 15, fontWeight: 700, color: hasData ? C.accent2 : C.muted }}>{estR}{estR !== "-" ? "%" : ""}</div>
+ <div style={{ fontSize: 9, color: C.muted }}>見積り率</div>
+ </div>
+ <div style={{ width: 1, background: C.cardBorder }} />
+ <div style={{ textAlign: "center" }}>
+ <div style={{ fontSize: 15, fontWeight: 700, color: hasData ? C.dogrun : C.muted }}>{ctR}{ctR !== "-" ? "%" : ""}</div>
+ <div style={{ fontSize: 9, color: C.muted }}>契約率</div>
+ </div>
+ </div>
+ </div>
+ );
+ })}
+ </div>
+ </div>
+
+ <button className="btn btn-primary" onClick={saveSales}> 保存する</button>
+ <div style={{ height: 8 }} />
+ <button className="btn btn-export" onClick={exportSalesCSV}> CSVエクスポート</button>
+ </>
+ )}
+
+ {/* ─ Week ─ */}
+ {subTab === "week" && (() => {
+ const weeks = salesByWeek();
+ const sorted = Object.keys(weeks).sort().reverse();
+ if (sorted.length === 0) return <div className="card"><div style={{ color: C.muted, fontSize: 13 }}>データがまだありません</div></div>;
+ return sorted.slice(0, 8).map(wk => {
+ const d = weeks[wk];
+ const holdR = d.voiceAll > 0 ? (d.holdAll / d.voiceAll * 100).toFixed(0) : 0;
+ const ctR = d.holdAll > 0 ? (d.contract / d.holdAll * 100).toFixed(0) : 0;
+ return (
+ <div className="card" key={wk}>
+ <div className="card-title"><span className="tag tag-blue">{wk}</span> <span style={{ fontSize: 11, color: C.muted }}>{d.days}日分</span></div>
+ <div className="grid3">
+ {[["来客",d.visitor],["声かけ",d.voiceAll],["抱っこ",d.holdAll],["見積",d.estimate],["契約",d.contract],["口コミ",d.review],["プレミ",d.premium],["抱っこ率",holdR+"%"],["契約率",ctR+"%"]].map(([l,v]) => (
+ <div className="stat-box" key={l}><div className="stat-val" style={{ fontSize: 18 }}>{v}</div><div className="stat-label">{l}</div></div>
+ ))}
+ </div>
+ </div>
+ );
+ });
+ })()}
+
+ {/* ─ Month ─ */}
+ {subTab === "month" && (() => {
+ const months = salesByMonth();
+ const sorted = Object.keys(months).sort().reverse();
+ if (sorted.length === 0) return <div className="card"><div style={{ color: C.muted, fontSize: 13 }}>データがまだありません</div></div>;
+ return sorted.map(mo => {
+ const d = months[mo];
+ const exp = monthExpanded[mo];
+ const sm = staffByMonth(mo);
+ const holdR = d.voiceAll > 0 ? (d.holdAll / d.voiceAll * 100).toFixed(1) : 0;
+ const ctR = d.holdAll > 0 ? (d.contract / d.holdAll * 100).toFixed(1) : 0;
+ return (
+ <div className="card" key={mo}>
+ <div className="month-header" onClick={() => setMonthExpanded(p => ({ ...p, [mo]: !exp }))}>
+ <span>{mo} <span style={{ fontSize: 11, color: C.muted }}>（{d.days}日）</span></span>
+ <span style={{ fontSize: 12 }}>{exp ? "▲" : "▼"}</span>
+ </div>
+ <div className="grid3">
+ {[["来客",d.visitor],["声かけ",d.voiceAll],["抱っこ",d.holdAll],["見積",d.estimate],["契約",d.contract],["口コミ",d.review],["プレミ",d.premium],["抱っこ率",holdR+"%"],["契約率",ctR+"%"]].map(([l,v]) => (
+ <div className="stat-box" key={l}><div className="stat-val" style={{ fontSize: 16 }}>{v}</div><div className="stat-label">{l}</div></div>
+ ))}
+ </div>
+ {exp && (
+ <div style={{ marginTop: 12 }}>
+ <div style={{ fontSize: 12, color: C.accent2, fontWeight: 700, marginBottom: 8 }}> スタッフ別（{mo}）</div>
+ <div className="scroll-x">
+ <div className="staff-header">
+ <div></div>
+ {STAFF_FIELDS.map(f => <div key={f} className="mini-label">{f}</div>)}
+ </div>
+ {staff.map(n => {
+ const r = sm[n] || {};
+ const holdR = r.voice > 0 ? (r.hold / r.voice * 100).toFixed(0) : "-";
+ const estR = r.hold > 0 ? (r.estimate / r.hold * 100).toFixed(0) : "-";
+ const ctR = r.hold > 0 ? (r.contract / r.hold * 100).toFixed(0) : "-";
+ return (
+ <div key={n} style={{ marginBottom: 8 }}>
+ <div style={{ display: "grid", gridTemplateColumns: "70px repeat(7,1fr)", gap: 4, marginBottom: 3 }}>
+ <div style={{ fontSize: 11, color: C.text, display: "flex", alignItems: "center" }}>{n}</div>
+ {STAFF_FIELD_KEYS.map(k => (
+ <div key={k} style={{ background: "#1e2333", borderRadius: 6, padding: "6px 2px", textAlign: "center", fontSize: 12, color: C.accent2, fontWeight: 700 }}>{r[k] || 0}</div>
+ ))}
+ </div>
+ <div style={{ display: "grid", gridTemplateColumns: "70px 1fr 1fr 1fr", gap: 4 }}>
+ <div />
+ {[["抱っこ率", holdR, C.accent], ["見積り率", estR, C.accent2], ["契約率", ctR, C.dogrun]].map(([label, val, color]) => (
+ <div key={label} style={{ background: "#13182a", borderRadius: 5, padding: "4px 2px", textAlign: "center" }}>
+ <div style={{ fontSize: 13, fontWeight: 700, color: val !== "-" ? color : C.muted }}>{val}{val !== "-" ? "%" : ""}</div>
+ <div style={{ fontSize: 9, color: C.muted }}>{label}</div>
+ </div>
+ ))}
+ </div>
+ </div>
+ );
+ })}
+ </div>
+ </div>
+ )}
+ </div>
+ );
+ });
+ })()}
+
+ {/* ─ Predict ─ */}
+ {subTab === "predict" && (
+ <>
+ {!prediction ? (
+ <div className="card"><div style={{ color: C.muted, fontSize: 13 }}>データを入力してから予測が表示されます</div></div>
+ ) : (
+ <>
+ <div className="alert">直近{prediction.days}日のデータをもとに算出しています</div>
+ <div className="predict-box">
+ <div className="predict-title"> 2週間後の予測契約数</div>
+ <div className="predict-val">{prediction.pred.contract}件</div>
+ <div className="predict-sub">声かけ→抱っこ率 {prediction.holdRate}% ／ 抱っこ→契約率 {prediction.contractRate}%</div>
+ </div>
+ <div className="card">
+ <div className="card-title"> 2週間後の予測値</div>
+ <div className="grid2">
+ {[["来客数",prediction.pred.visitor],["声かけ数",prediction.pred.voiceAll],["抱っこ数",prediction.pred.holdAll],["見積り配布",prediction.pred.estimate],["口コミ数",prediction.pred.review],["プレミアム",prediction.pred.premium]].map(([l,v]) => (
+ <div className="stat-box" key={l}>
+ <div className="stat-val" style={{ fontSize: 20 }}>{v}</div>
+ <div className="stat-label">{l}</div>
+ </div>
+ ))}
+ </div>
+ </div>
+ </>
+ )}
+ </>
+ )}
+ </div>
+ </>
+ )}
+
+ {/* ═══ DOGRUN TAB ═══ */}
+ {tab === "dogrun" && (
+ <>
+ <div className="tab-bar" style={{ top: 109 }}>
+ {["input","week","month"].map(t2 => (
+ <div key={t2} className={`tab dogrun-tab ${dogSubTab === t2 ? "active" : ""}`} onClick={() => setDogSubTab(t2)}>
+ {t2 === "input" ? "入力" : t2 === "week" ? "週別" : "月別"}
+ </div>
+ ))}
+ </div>
+
+ <div className="section" style={{ paddingTop: 14 }}>
+ {dogSubTab === "input" && (
+ <>
+ <div className="card">
+ <div className="card-title"> 本日のドッグランデータ</div>
+ <div className="field-group">
+ <div className="field-label">日付</div>
+ <input type="date" className="input" value={dogDate} onChange={e => setDogDate(e.target.value)} />
+ </div>
+ <div className="grid2">
+ <div className="field-group">
+ <div className="field-label">利用家族数</div>
+ <input type="number" className="input" min="0" value={dogRow.families} onChange={e => setDogRow(p => ({ ...p, families: Number(e.target.value) || 0 }))} />
+ </div>
+ <div className="field-group">
+ <div className="field-label">利用頭数（合計）</div>
+ <input type="number" className="input" min="0" value={dogRow.dogs} onChange={e => setDogRow(p => ({ ...p, dogs: Number(e.target.value) || 0 }))} />
+ </div>
+ </div>
+ <div className="field-group">
+ <div className="field-label">天気</div>
+ <select className="select" value={dogRow.weather} onChange={e => setDogRow(p => ({ ...p, weather: e.target.value }))}>
+ <option value="">選択してください</option>
+ {WEATHER_OPTIONS.map(w => <option key={w} value={w}>{w}</option>)}
+ </select>
+ </div>
+ <div className="field-group">
+ <div className="field-label">気温（°C）</div>
+ <input type="number" className="input" value={dogRow.temp} onChange={e => setDogRow(p => ({ ...p, temp: Number(e.target.value) || 0 }))} />
+ </div>
+ <div className="grid3">
+ {[["小型犬","small"],["中型犬","medium"],["大型犬","large"]].map(([l,k]) => (
+ <div className="field-group" key={k}>
+ <div className="field-label">{l}</div>
+ <input type="number" className="input" min="0" value={dogRow[k]} onChange={e => setDogRow(p => ({ ...p, [k]: Number(e.target.value) || 0 }))} />
+ </div>
+ ))}
+ </div>
+ <div className="field-group">
+ <div className="field-label">新規会員数</div>
+ <input type="number" className="input" min="0" value={dogRow.members} onChange={e => setDogRow(p => ({ ...p, members: Number(e.target.value) || 0 }))} />
+ </div>
+ <div className="field-group">
+ <div className="field-label">当店を知った理由（複数選択可）</div>
+ <div className="checkbox-group">
+ {KNOWN_BY_OPTIONS.map(opt => (
+ <label className="checkbox-item" key={opt}>
+ <input type="checkbox" checked={dogRow.knownBy?.includes(opt)}
+ onChange={e => setDogRow(p => ({ ...p, knownBy: e.target.checked ? [...(p.knownBy || []), opt] : (p.knownBy || []).filter(x => x !== opt) }))} />
+ {opt}
+ </label>
+ ))}
+ </div>
+ </div>
+ </div>
+ <button className="btn btn-dogrun" onClick={saveDog}> 保存する</button>
+ <div style={{ height: 8 }} />
+ <button className="btn btn-export" onClick={() => exportCSV(dogData, "dogrun_data.csv")}> CSVエクスポート</button>
+ </>
+ )}
+
+ {dogSubTab === "week" && (() => {
+ const weeks = dogByWeek();
+ const sorted = Object.keys(weeks).sort().reverse();
+ if (sorted.length === 0) return <div className="card"><div style={{ color: C.muted, fontSize: 13 }}>データがまだありません</div></div>;
+ return sorted.slice(0, 12).map(wk => {
+ const d = weeks[wk];
+ const avgDog = d.days > 0 ? (d.dogs / d.days).toFixed(1) : 0;
+ return (
+ <div className="card" key={wk}>
+ <div className="card-title"><span className="tag tag-green">{wk}</span> <span style={{ fontSize: 11, color: C.muted }}>{d.days}日分</span></div>
+ <div className="grid3">
+ {[["家族数",d.families],["頭数合計",d.dogs],["1日平均",avgDog+"頭"],["小型犬",d.small],["中型犬",d.medium],["大型犬",d.large],["新規会員",d.members]].map(([l,v]) => (
+ <div className="stat-box" key={l}><div className="stat-val green" style={{ fontSize: 16 }}>{v}</div><div className="stat-label">{l}</div></div>
+ ))}
+ </div>
+ </div>
+ );
+ });
+ })()}
+
+ {dogSubTab === "month" && (() => {
+ const months = dogByMonth();
+ const sorted = Object.keys(months).sort().reverse();
+ if (sorted.length === 0) return <div className="card"><div style={{ color: C.muted, fontSize: 13 }}>データがまだありません</div></div>;
+ return sorted.map(mo => {
+ const d = months[mo];
+ const avgDog = d.days > 0 ? (d.dogs / d.days).toFixed(1) : 0;
+ const topWeather = Object.entries(d.weatherCount).sort((a, b) => b[1] - a[1])[0];
+ return (
+ <div className="card" key={mo}>
+ <div className="month-header" style={{ cursor: "default" }}>
+ <span>{mo} <span style={{ fontSize: 11, color: C.muted }}>（{d.days}日）</span></span>
+ {topWeather && <span style={{ fontSize: 11, color: C.dogrun }}>{topWeather[0]}が多かった</span>}
+ </div>
+ <div className="grid3">
+ {[["家族数計",d.families],["頭数計",d.dogs],["1日平均",avgDog+"頭"],["小型犬",d.small],["中型犬",d.medium],["大型犬",d.large],["新規会員",d.members]].map(([l,v]) => (
+ <div className="stat-box" key={l}><div className="stat-val green" style={{ fontSize: 16 }}>{v}</div><div className="stat-label">{l}</div></div>
+ ))}
+ </div>
+ </div>
+ );
+ });
+ })()}
+ </div>
+ </>
+ )}
+
+ {/* ═══ SETTINGS TAB ═══ */}
+ {tab === "settings" && (
+ <div className="section" style={{ paddingTop: 14 }}>
+ <div className="card">
+ <div className="card-title"> スタッフ登録（最大10名）</div>
+ <div className="alert">1行に1人ずつ入力してください</div>
+ <div className="field-group">
+ <textarea className="input" rows={10} style={{ resize: "vertical", lineHeight: 1.8 }}
+ value={staffInput} onChange={e => setStaffInput(e.target.value)} />
+ </div>
+ <button className="btn btn-primary" onClick={saveStaff}> スタッフを保存する</button>
+ </div>
+
+ <div className="card">
+ <div className="card-title"> データ管理</div>
+ <button className="btn btn-export" style={{ marginBottom: 8 }} onClick={exportSalesCSV}>販売データをエクスポート</button>
+ <button className="btn btn-export" onClick={() => exportCSV(dogData, "dogrun_data.csv")}>ドッグランデータをエクスポート</button>
+ </div>
+ </div>
+ )}
+ </div>
+</>
+```
+
+);
+}
