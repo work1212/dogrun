@@ -3,271 +3,628 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title> ペットショップ活動管理システム</title>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<title>🐾 ペットショップ活動管理</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=DM+Mono:wght@500&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:#0f1117;color:#e8eaf6;font-family:'Noto Sans JP',sans-serif;min-height:100vh}
-.app{max-width:480px;margin:0 auto;padding:0 0 80px}
-.header{background:linear-gradient(135deg,#1a1f35,#252a45);padding:20px 20px 16px;border-bottom:1px solid #252a3a;position:sticky;top:0;z-index:100}
-.header-title{font-family:'Space Grotesk',sans-serif;font-size:18px;font-weight:700;display:flex;align-items:center;gap:8px}
-.tab-bar{display:flex;background:#181c27;border-bottom:1px solid #252a3a;position:sticky;z-index:99}
-.tab-bar.main{top:61px}
-.tab-bar.sub{top:109px}
-.tab{flex:1;padding:12px 4px;text-align:center;font-size:12px;font-weight:500;color:#7b82a0;cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;user-select:none}
-.tab.active-sales{color:#6c8ef5;border-bottom-color:#6c8ef5}
-.tab.active-dog{color:#3ecf8e;border-bottom-color:#3ecf8e}
-.section{padding:16px}
-.card{background:#181c27;border:1px solid #252a3a;border-radius:14px;padding:16px;margin-bottom:14px}
-.card-title{font-size:14px;font-weight:700;color:#e8eaf6;margin-bottom:14px;display:flex;align-items:center;gap:6px}
-.field-label{font-size:12px;color:#7b82a0;margin-bottom:6px;font-weight:500}
-input[type=text],input[type=number],input[type=date],select,textarea{width:100%;background:#1e2333;border:1px solid #252a3a;border-radius:8px;padding:10px 12px;color:#e8eaf6;font-size:14px;font-family:'Noto Sans JP',sans-serif;outline:none;transition:border-color .2s;appearance:none;-webkit-appearance:none}
-input:focus,select:focus,textarea:focus{border-color:#6c8ef5}
-.field-group{margin-bottom:12px}
-.btn{width:100%;padding:12px;border-radius:10px;border:none;font-size:14px;font-weight:700;font-family:'Noto Sans JP',sans-serif;cursor:pointer;transition:opacity .15s;margin-bottom:8px;display:block}
-.btn:active{opacity:.75}
-.btn-primary{background:linear-gradient(135deg,#6c8ef5,#8b6cf7);color:#fff}
-.btn-dog{background:linear-gradient(135deg,#3ecf8e,#26a671);color:#fff}
-.btn-export{background:linear-gradient(135deg,#06b6d4,#3b82f6);color:#fff}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
-.stat-box{background:#1e2333;border-radius:10px;padding:12px;text-align:center}
-.stat-val{font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:700;color:#6c8ef5}
-.stat-val.green{color:#3ecf8e}
-.stat-label{font-size:10px;color:#7b82a0;margin-top:2px}
-.predict-box{background:linear-gradient(135deg,#1a2040,#252a55);border:1px solid #3a4070;border-radius:12px;padding:14px;margin-bottom:10px}
-.predict-title{font-size:12px;color:#8b9de8;margin-bottom:8px}
-.predict-val{font-family:'Space Grotesk',sans-serif;font-size:28px;font-weight:700;color:#6c8ef5}
-.predict-sub{font-size:11px;color:#7b82a0;margin-top:4px}
-.staff-row{display:flex;align-items:center;gap:8px;background:#1e2333;border-radius:8px;padding:10px;margin-bottom:8px}
-.staff-name{font-size:12px;font-weight:500;color:#e8eaf6;min-width:64px;flex-shrink:0}
-.staff-inputs{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;flex:1}
-.mini-input{background:#252a3a;border:1px solid #252a3a;border-radius:6px;padding:6px 2px;color:#e8eaf6;font-size:12px;font-family:'Noto Sans JP',sans-serif;outline:none;text-align:center;width:100%;appearance:none;-webkit-appearance:none}
-.mini-input:focus{border-color:#6c8ef5}
-.mini-label{font-size:9px;color:#7b82a0;text-align:center;margin-bottom:3px}
-.staff-header{display:grid;grid-template-columns:64px repeat(7,1fr);gap:3px;margin-bottom:4px}
-.staff-total-row{display:grid;grid-template-columns:64px repeat(7,1fr);gap:3px;background:#252a3a;border-radius:8px;padding:8px 10px;margin-top:4px}
-.total-cell{font-size:12px;font-weight:700;color:#f5a623;text-align:center}
-.rate-row{display:flex;align-items:center;justify-content:space-between;background:#1e2333;border-radius:8px;padding:8px 10px;margin-bottom:6px}
-.rate-item{text-align:center}
-.rate-val{font-size:15px;font-weight:700}
-.rate-lbl{font-size:9px;color:#7b82a0}
-.divider{width:1px;background:#252a3a;align-self:stretch}
-.tag{display:inline-block;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:500}
-.tag-blue{background:#1e3a5f;color:#6bb3f5}
-.tag-green{background:#1a3d2e;color:#4dd4a0}
-.month-header{background:#1e2333;border-radius:8px;padding:10px 12px;margin-bottom:8px;font-size:13px;font-weight:700;color:#6c8ef5;display:flex;justify-content:space-between;align-items:center;cursor:pointer;user-select:none}
-.checkbox-group{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
-.checkbox-item{display:flex;align-items:center;gap:4px;font-size:12px;color:#7b82a0;cursor:pointer}
-.checkbox-item input[type=checkbox]{width:auto;padding:0;accent-color:#3ecf8e}
-.alert-box{background:#1a2a1a;border:1px solid #2d5a2d;border-radius:8px;padding:10px 12px;font-size:12px;color:#3ecf8e;margin-bottom:10px}
-.scroll-x{overflow-x:auto;-webkit-overflow-scrolling:touch}
+:root{
+  --bg:#0b0e18;--card:#131929;--card2:#1a2035;--border:#1e2a42;
+  --text:#dde3f5;--muted:#5a6690;--blue:#5b8cf7;--green:#30c97e;
+  --orange:#f5a623;--accent:#7c5cfc;--red:#f55e5e;
+}
+body{background:var(--bg);color:var(--text);font-family:'Noto Sans JP',sans-serif;min-height:100vh;font-size:14px}
+.app{max-width:480px;margin:0 auto;padding-bottom:100px}
+
+/* HEADER */
+.hdr{background:linear-gradient(135deg,#111827,#1a2235);padding:16px 20px;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:200}
+.hdr-title{font-family:'DM Mono',monospace;font-size:16px;font-weight:500;display:flex;align-items:center;gap:8px;color:var(--text)}
+
+/* TABS */
+.tabs{display:flex;background:#0e1320;border-bottom:1px solid var(--border);position:sticky;z-index:190}
+.tabs.main{top:53px}
+.tabs.sub{top:101px}
+.tab{flex:1;padding:11px 4px;text-align:center;font-size:11px;font-weight:700;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;letter-spacing:.3px}
+.tab.s-on{color:var(--blue);border-color:var(--blue)}
+.tab.d-on{color:var(--green);border-color:var(--green)}
+
+/* LAYOUT */
+.sec{padding:14px}
 .hidden{display:none!important}
+
+/* CARD */
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:12px}
+.card-title{font-size:13px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:6px}
+
+/* INPUTS */
+input[type=text],input[type=number],input[type=date],select,textarea{
+  width:100%;background:var(--card2);border:1px solid var(--border);border-radius:8px;
+  padding:10px 12px;color:var(--text);font-size:14px;font-family:'Noto Sans JP',sans-serif;
+  outline:none;transition:border-color .2s;-webkit-appearance:none;appearance:none
+}
+input:focus,select:focus,textarea:focus{border-color:var(--blue)}
+.fg{margin-bottom:10px}
+.lbl{font-size:11px;color:var(--muted);margin-bottom:5px;font-weight:500}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+
+/* BUTTON */
+.btn{width:100%;padding:13px;border-radius:10px;border:none;font-size:14px;font-weight:700;
+  font-family:'Noto Sans JP',sans-serif;cursor:pointer;margin-bottom:8px;display:block;letter-spacing:.3px}
+.btn-blue{background:linear-gradient(135deg,#4a7af5,#7c5cfc);color:#fff}
+.btn-green{background:linear-gradient(135deg,#25c47a,#1aa868);color:#fff}
+.btn-cyan{background:linear-gradient(135deg,#06b6d4,#3b82f6);color:#fff}
+.btn:active{opacity:.75}
+
+/* STAT BOX */
+.stat-box{background:var(--card2);border-radius:10px;padding:10px 8px;text-align:center}
+.stat-val{font-family:'DM Mono',monospace;font-size:19px;font-weight:500;color:var(--blue)}
+.stat-val.g{color:var(--green)}
+.stat-lbl{font-size:9px;color:var(--muted);margin-top:3px}
+
+/* STAFF TABLE */
+.s-hdr{display:grid;grid-template-columns:60px repeat(7,1fr);gap:2px;margin-bottom:3px}
+.s-row{display:grid;grid-template-columns:60px repeat(7,1fr);gap:2px;background:var(--card2);border-radius:8px;padding:8px 6px;margin-bottom:4px;align-items:center}
+.s-name{font-size:11px;font-weight:700;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mi{background:#0e1320;border:1px solid var(--border);border-radius:5px;padding:5px 2px;color:var(--text);
+  font-size:12px;font-family:'DM Mono',monospace;outline:none;text-align:center;width:100%;-webkit-appearance:none;appearance:none}
+.mi:focus{border-color:var(--blue)}
+.mlbl{font-size:8px;color:var(--muted);text-align:center;margin-bottom:2px}
+.s-tot{display:grid;grid-template-columns:60px repeat(7,1fr);gap:2px;background:#1a2540;border-radius:8px;padding:7px 6px;margin-top:2px}
+.tot-c{font-family:'DM Mono',monospace;font-size:12px;font-weight:500;color:var(--orange);text-align:center}
+
+/* RATE ROW */
+.rate-row{background:var(--card2);border-radius:8px;padding:8px 10px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center}
+.rate-name{font-size:12px;font-weight:700;min-width:55px}
+.rate-items{display:flex;gap:12px}
+.ri{text-align:center}
+.rv{font-family:'DM Mono',monospace;font-size:14px;font-weight:500}
+.rl{font-size:8px;color:var(--muted);margin-top:1px}
+
+/* PREDICT BOX */
+.pred-box{background:linear-gradient(135deg,#111e40,#1a2555);border:1px solid #2a3870;border-radius:12px;padding:14px;margin-bottom:10px}
+.pred-title{font-size:11px;color:#8b9de8;margin-bottom:6px}
+.pred-val{font-family:'DM Mono',monospace;font-size:30px;font-weight:500;color:var(--blue)}
+.pred-sub{font-size:10px;color:var(--muted);margin-top:4px}
+
+/* HISTORY */
+.hist-row{background:var(--card2);border-radius:8px;padding:10px 12px;margin-bottom:6px}
+.hist-date{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);margin-bottom:6px}
+.hist-vals{display:flex;flex-wrap:wrap;gap:6px}
+.hv{background:#0e1320;border-radius:5px;padding:3px 8px;font-size:11px}
+.hv span{font-family:'DM Mono',monospace;font-weight:500;color:var(--orange)}
+
+/* MONTH SECTION */
+.mo-hdr{background:var(--card2);border-radius:8px;padding:9px 12px;margin-bottom:6px;font-size:12px;
+  font-weight:700;color:var(--blue);display:flex;justify-content:space-between;align-items:center;cursor:pointer}
+.alert{background:#0e2a1e;border:1px solid #1e5a3a;border-radius:8px;padding:10px 12px;font-size:11px;color:var(--green);margin-bottom:10px}
+.scroll-x{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.tag{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700}
+.tag-b{background:#1a3060;color:#6bb3f5}
+.tag-g{background:#0e3020;color:#40d4a0}
+.tag-o{background:#2a1e08;color:#f5a623}
+
+/* CHECKBOX */
+.cb-group{display:flex;flex-wrap:wrap;gap:10px;margin-top:6px}
+.cb-item{display:flex;align-items:center;gap:4px;font-size:12px;color:var(--muted);cursor:pointer}
+.cb-item input[type=checkbox]{width:auto;padding:0;accent-color:var(--green)}
+
+/* SETTINGS */
+.settings-card input[type=text]{margin-bottom:6px}
 </style>
 </head>
 <body>
 <div class="app">
- <div class="header">
- <div class="header-title"> ペットショップ活動管理</div>
- </div>
+<div class="hdr">
+  <div class="hdr-title">🐾 ペットショップ活動管理</div>
+</div>
 
- <!-- MAIN TABS -->
- <div class="tab-bar main">
- <div class="tab" id="main-sales" onclick="switchMain('sales')">販売・サブスク</div>
- <div class="tab" id="main-dog" onclick="switchMain('dog')"> ドッグラン</div>
- <div class="tab" id="main-settings" onclick="switchMain('settings')"> 設定</div>
- </div>
+<!-- MAIN TABS -->
+<div class="tabs main">
+  <div class="tab" id="mt-sales" onclick="mainTab('sales')">販売・サブスク</div>
+  <div class="tab" id="mt-dog" onclick="mainTab('dog')">🐕 ドッグラン</div>
+  <div class="tab" id="mt-cfg" onclick="mainTab('cfg')">⚙️ 設定</div>
+</div>
 
- <!-- SALES -->
- <div id="section-sales">
- <div class="tab-bar sub">
- <div class="tab" id="sub-input" onclick="switchSub('input')">入力</div>
- <div class="tab" id="sub-week" onclick="switchSub('week')">今週</div>
- <div class="tab" id="sub-month" onclick="switchSub('month')">月別</div>
- <div class="tab" id="sub-predict" onclick="switchSub('predict')">予測</div>
- </div>
+<!-- ========== SALES ========== -->
+<div id="sec-sales" class="hidden">
+  <div class="tabs sub">
+    <div class="tab" id="st-inp" onclick="subTab('inp')">入力</div>
+    <div class="tab" id="st-hist" onclick="subTab('hist')">履歴</div>
+    <div class="tab" id="st-mo" onclick="subTab('mo')">月別</div>
+    <div class="tab" id="st-pred" onclick="subTab('pred')">予測</div>
+  </div>
 
- <div class="section hidden" id="pane-input">
- <div class="card">
- <div class="card-title"> 日付</div>
- <input type="date" id="sale-date" onchange="buildStaffInputRows()">
- </div>
- <div class="card">
- <div class="card-title"> 店舗合計（任意）</div>
- <div class="grid2" id="store-fields"></div>
- </div>
- <div class="card">
- <div class="card-title"> スタッフ別入力</div>
- <div class="scroll-x">
- <div class="staff-header">
- <div></div>
- <div class="mini-label">声かけ</div>
- <div class="mini-label">抱っこ</div>
- <div class="mini-label">見積</div>
- <div class="mini-label">契約</div>
- <div class="mini-label">口コミ</div>
- <div class="mini-label">プレミ</div>
- <div class="mini-label">来客</div>
- </div>
- <div id="staff-input-rows"></div>
- <div class="staff-total-row">
- <div class="total-cell" style="font-size:10px;color:#7b82a0;text-align:left">合計</div>
- <div class="total-cell" id="tot-voice">0</div>
- <div class="total-cell" id="tot-hold">0</div>
- <div class="total-cell" id="tot-estimate">0</div>
- <div class="total-cell" id="tot-contract">0</div>
- <div class="total-cell" id="tot-review">0</div>
- <div class="total-cell" id="tot-premium">0</div>
- <div class="total-cell" id="tot-visitor">0</div>
- </div>
- </div>
- <div style="margin-top:12px">
- <div style="font-size:12px;color:#f5a623;font-weight:700;margin-bottom:8px"> スタッフ別 転換率</div>
- <div id="staff-rate-rows"></div>
- </div>
- </div>
- <button class="btn btn-primary" onclick="saveSales()"> 保存する</button>
- <button class="btn btn-export" onclick="exportSalesCSV()"> CSVエクスポート</button>
- </div>
+  <!-- INPUT -->
+  <div class="sec hidden" id="sp-inp">
+    <div class="card">
+      <div class="card-title">📅 日付</div>
+      <input type="date" id="sale-date" onchange="onDateChange()">
+    </div>
+    <div class="card">
+      <div class="card-title">🏪 店舗合計（任意）</div>
+      <div class="g2">
+        <div class="fg"><div class="lbl">来客数</div><input type="number" id="st-visitor" min="0" value="0"></div>
+        <div class="fg"><div class="lbl">声かけ数</div><input type="number" id="st-voice" min="0" value="0"></div>
+        <div class="fg"><div class="lbl">抱っこ数</div><input type="number" id="st-hold" min="0" value="0"></div>
+        <div class="fg"><div class="lbl">見積り配布</div><input type="number" id="st-est" min="0" value="0"></div>
+        <div class="fg"><div class="lbl">契約数</div><input type="number" id="st-contract" min="0" value="0"></div>
+        <div class="fg"><div class="lbl">口コミ数</div><input type="number" id="st-review" min="0" value="0"></div>
+        <div class="fg"><div class="lbl">プレミアム</div><input type="number" id="st-premium" min="0" value="0"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">👤 スタッフ別入力</div>
+      <div class="scroll-x">
+        <div class="s-hdr">
+          <div></div>
+          <div class="mlbl">声かけ</div><div class="mlbl">抱っこ</div><div class="mlbl">見積</div>
+          <div class="mlbl">契約</div><div class="mlbl">口コミ</div><div class="mlbl">プレミ</div><div class="mlbl">来客</div>
+        </div>
+        <div id="staff-rows"></div>
+        <div class="s-tot" id="s-tot-row">
+          <div class="tot-c" style="font-size:9px;color:var(--muted);text-align:left">合計</div>
+          <div class="tot-c" id="t-voice">0</div><div class="tot-c" id="t-hold">0</div>
+          <div class="tot-c" id="t-est">0</div><div class="tot-c" id="t-con">0</div>
+          <div class="tot-c" id="t-rev">0</div><div class="tot-c" id="t-pre">0</div>
+          <div class="tot-c" id="t-vis">0</div>
+        </div>
+      </div>
+      <div style="margin-top:12px">
+        <div style="font-size:11px;color:var(--orange);font-weight:700;margin-bottom:6px">📊 スタッフ別 転換率</div>
+        <div id="rate-rows"></div>
+      </div>
+    </div>
+    <button class="btn btn-blue" onclick="saveSales()">💾 保存する</button>
+    <button class="btn btn-cyan" onclick="exportSalesCSV()">📤 CSVエクスポート</button>
+  </div>
 
- <div class="section hidden" id="pane-week"><div id="week-content"></div></div>
- <div class="section hidden" id="pane-month"><div id="month-content"></div></div>
- <div class="section hidden" id="pane-predict"><div id="predict-content"></div></div>
- </div>
+  <!-- HISTORY -->
+  <div class="sec hidden" id="sp-hist"><div id="hist-content"></div></div>
+  <!-- MONTH -->
+  <div class="sec hidden" id="sp-mo"><div id="mo-content"></div></div>
+  <!-- PREDICT -->
+  <div class="sec hidden" id="sp-pred"><div id="pred-content"></div></div>
+</div>
 
- <!-- DOGRUN -->
-< truncated lines 139-364 >
- }).join('') : noData();
+<!-- ========== DOGRUN ========== -->
+<div id="sec-dog" class="hidden">
+  <div class="tabs sub">
+    <div class="tab" id="dt-inp" onclick="dogTab('inp')">入力</div>
+    <div class="tab" id="dt-hist" onclick="dogTab('hist')">履歴</div>
+    <div class="tab" id="dt-mo" onclick="dogTab('mo')">月別</div>
+  </div>
+
+  <!-- DOG INPUT -->
+  <div class="sec hidden" id="dp-inp">
+    <div class="card">
+      <div class="card-title">🐕 本日のドッグランデータ</div>
+      <div class="fg"><div class="lbl">日付</div><input type="date" id="dog-date"></div>
+      <div class="g2">
+        <div class="fg"><div class="lbl">利用家族数</div><input type="number" id="d-fam" min="0" value="0"></div>
+        <div class="fg"><div class="lbl">利用頭数（合計）</div><input type="number" id="d-dogs" min="0" value="0"></div>
+      </div>
+      <div class="fg"><div class="lbl">天気</div>
+        <select id="d-weather">
+          <option value="">選択してください</option>
+          <option>晴れ</option><option>曇り</option><option>雨</option><option>雪</option>
+        </select>
+      </div>
+      <div class="fg"><div class="lbl">気温（℃）</div><input type="number" id="d-temp" value="0"></div>
+      <div class="g3">
+        <div class="fg"><div class="lbl">小型犬</div><input type="number" id="d-small" min="0" value="0"></div>
+        <div class="fg"><div class="lbl">中型犬</div><input type="number" id="d-mid" min="0" value="0"></div>
+        <div class="fg"><div class="lbl">大型犬</div><input type="number" id="d-large" min="0" value="0"></div>
+      </div>
+      <div class="fg"><div class="lbl">新規会員数</div><input type="number" id="d-members" min="0" value="0"></div>
+      <div class="fg">
+        <div class="lbl">当店を知った理由（複数選択可）</div>
+        <div class="cb-group">
+          <label class="cb-item"><input type="checkbox" value="SNS"> SNS</label>
+          <label class="cb-item"><input type="checkbox" value="通りがかり"> 通りがかり</label>
+          <label class="cb-item"><input type="checkbox" value="紹介"> 紹介</label>
+          <label class="cb-item"><input type="checkbox" value="チラシ"> チラシ</label>
+          <label class="cb-item"><input type="checkbox" value="リピート"> リピート</label>
+          <label class="cb-item"><input type="checkbox" value="その他"> その他</label>
+        </div>
+      </div>
+    </div>
+    <button class="btn btn-green" onclick="saveDog()">💾 保存する</button>
+    <button class="btn btn-cyan" onclick="exportDogCSV()">📤 CSVエクスポート</button>
+  </div>
+  <div class="sec hidden" id="dp-hist"><div id="dhist-content"></div></div>
+  <div class="sec hidden" id="dp-mo"><div id="dmo-content"></div></div>
+</div>
+
+<!-- ========== SETTINGS ========== -->
+<div id="sec-cfg" class="hidden">
+  <div class="sec">
+    <div class="card settings-card">
+      <div class="card-title">👤 スタッフ名設定（改行で区切り）</div>
+      <textarea id="cfg-staff" rows="8" style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-size:13px;width:100%;outline:none;font-family:'Noto Sans JP',sans-serif;resize:none"></textarea>
+      <button class="btn btn-blue" style="margin-top:10px" onclick="saveStaff()">💾 スタッフ保存</button>
+    </div>
+    <div class="card">
+      <div class="card-title">🗑️ データ管理</div>
+      <button class="btn" style="background:#2a1010;color:#f55e5e;border:1px solid #5a2020" onclick="clearAll()">⚠️ 全データをリセット</button>
+    </div>
+  </div>
+</div>
+
+</div><!-- .app -->
+
+<script>
+// =================== STATE ===================
+const SKEYS = ['voice','hold','est','contract','review','premium','visitor'];
+const SLBLS = ['声かけ','抱っこ','見積','契約','口コミ','プレミ','来客'];
+
+let salesData = {}, dogData = {};
+let staff = ['今井','江面','久米','冨澤','関原','染谷','鈴木リサ'];
+let mainCur = 'sales', subCur = 'inp', dogCur = 'inp';
+
+// =================== INIT ===================
+function init() {
+  const sd = localStorage.getItem('ps_sales');
+  const dd = localStorage.getItem('ps_dog');
+  const st = localStorage.getItem('ps_staff');
+  if (sd) salesData = JSON.parse(sd);
+  if (dd) dogData = JSON.parse(dd);
+  if (st) staff = JSON.parse(st);
+
+  const today = new Date();
+  const ymd = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+  document.getElementById('sale-date').value = ymd;
+  document.getElementById('dog-date').value = ymd;
+  document.getElementById('cfg-staff').value = staff.join('\n');
+
+  mainTab('sales');
 }
 
-function renderSalesMonth() {
- const months=salesByMonth(), sorted=Object.keys(months).sort().reverse();
- document.getElementById('month-content').innerHTML = sorted.length ? sorted.map(mo=>{
- const d=months[mo], sm=staffByMonth(mo), exp=monthExpanded[mo];
- const staffHTML=staff.map(n=>{
- const r=sm[n]||{}, hR=pct(r.hold,r.voice), eR=pct(r.estimate,r.hold), cR=pct(r.contract,r.hold);
- return `<div style="margin-bottom:8px">
- <div style="display:grid;grid-template-columns:64px repeat(7,1fr);gap:3px;margin-bottom:3px">
- <div style="font-size:11px;color:#e8eaf6;display:flex;align-items:center">${n}</div>
- ${STAFF_KEYS.map(k=>`<div style="background:#1e2333;border-radius:6px;padding:6px 2px;text-align:center;font-size:12px;color:#f5a623;font-weight:700">${r[k]||0}</div>`).join('')}
- </div>
- <div style="display:grid;grid-template-columns:64px 1fr 1fr 1fr;gap:3px"><div></div>
- ${[['抱っこ率',hR,'#6c8ef5'],['見積り率',eR,'#f5a623'],['契約率',cR,'#3ecf8e']].map(([lb,val,col])=>
- `<div style="background:#13182a;border-radius:5px;padding:4px 2px;text-align:center"><div style="font-size:13px;font-weight:700;color:${val!=='-'?col:'#7b82a0'}">${val}</div><div style="font-size:9px;color:#7b82a0">${lb}</div></div>`).join('')}
- </div></div>`;
- }).join('');
- const eid='exp'+mo.replace('-','');
- return `<div class="card">
- <div class="month-header" onclick="toggleMonth('${mo}','${eid}')">
- <span>${mo} <span style="font-size:11px;color:#7b82a0">（${d.days}日）</span></span>
- <span id="arr${eid}">${exp?'▲':'▼'}</span>
- </div>
- <div class="grid3">${[['来客',d.visitor],['声かけ',d.voiceAll],['抱っこ',d.holdAll],['見積',d.estimate],['契約',d.contract],['口コミ',d.review],['プレミ',d.premium],['抱っこ率',pct(d.holdAll,d.voiceAll)],['契約率',pct(d.contract,d.holdAll)]].map(([l,v])=>statBox(l,v)).join('')}</div>
- <div id="${eid}" style="${exp?'':'display:none'};margin-top:12px">
- <div style="font-size:12px;color:#f5a623;font-weight:700;margin-bottom:8px"> スタッフ別（${mo}）</div>
- <div class="scroll-x">
- <div class="staff-header"><div></div>${STAFF_LABELS.map(l=>`<div class="mini-label">${l}</div>`).join('')}</div>
- ${staffHTML}
- </div>
- </div></div>`;
- }).join('') : noData();
+// =================== TABS ===================
+function mainTab(t) {
+  mainCur = t;
+  ['sales','dog','cfg'].forEach(x => {
+    document.getElementById('sec-'+x).classList.toggle('hidden', x!==t);
+    const el = document.getElementById('mt-'+x);
+    el.className = 'tab';
+    if (x===t) el.className = 'tab ' + (t==='dog'?'d-on':'s-on');
+  });
+  if (t==='sales') subTab(subCur);
+  else if (t==='dog') dogTab(dogCur);
 }
 
-function toggleMonth(mo,eid) {
- monthExpanded[mo]=!monthExpanded[mo];
- const el=document.getElementById(eid); if(el) el.style.display=monthExpanded[mo]?'':'none';
- const ar=document.getElementById('arr'+eid); if(ar) ar.textContent=monthExpanded[mo]?'▲':'▼';
+function subTab(t) {
+  subCur = t;
+  ['inp','hist','mo','pred'].forEach(x => {
+    document.getElementById('sp-'+x).classList.toggle('hidden', x!==t);
+    document.getElementById('st-'+x).className = 'tab' + (x===t?' s-on':'');
+  });
+  if (t==='inp') { buildStaffRows(); loadSaleForm(); }
+  else if (t==='hist') renderSalesHist();
+  else if (t==='mo') renderSalesMo();
+  else if (t==='pred') renderPred();
 }
 
-function renderPredict() {
- const entries=Object.entries(salesData).sort(([a],[b])=>b.localeCompare(a)).slice(0,14);
- const el=document.getElementById('predict-content');
- if(!entries.length){el.innerHTML=noData();return;}
- const days=entries.length, tot={visitor:0,voiceAll:0,holdAll:0,estimate:0,contract:0,review:0,premium:0};
- entries.forEach(([,v])=>{const s=v.store||{};Object.keys(tot).forEach(k=>tot[k]+=(s[k]||0));});
- const pred={}; Object.keys(tot).forEach(k=>pred[k]=Math.round(tot[k]/days*14));
- el.innerHTML=`<div class="alert-box">直近${days}日のデータをもとに算出しています</div>
- <div class="predict-box">
- <div class="predict-title"> 2週間後の予測契約数</div>
- <div class="predict-val">${pred.contract}件</div>
- <div class="predict-sub">声かけ→抱っこ率 ${tot.voiceAll>0?(tot.holdAll/tot.voiceAll*100).toFixed(1):0}% ／ 抱っこ→契約率 ${tot.holdAll>0?(tot.contract/tot.holdAll*100).toFixed(1):0}%</div>
- </div>
- <div class="card"><div class="card-title"> 2週間後の予測値</div>
- <div class="grid2">${[['来客数',pred.visitor],['声かけ数',pred.voiceAll],['抱っこ数',pred.holdAll],['見積り配布',pred.estimate],['口コミ数',pred.review],['プレミアム',pred.premium]].map(([l,v])=>statBox(l,v)).join('')}</div>
- </div>`;
+function dogTab(t) {
+  dogCur = t;
+  ['inp','hist','mo'].forEach(x => {
+    document.getElementById('dp-'+x).classList.toggle('hidden', x!==t);
+    document.getElementById('dt-'+x).className = 'tab' + (x===t?' d-on':'');
+  });
+  if (t==='hist') renderDogHist();
+  else if (t==='mo') renderDogMo();
+  else loadDogForm();
 }
 
-function renderDogWeek() {
- const weeks=dogByWeek(), sorted=Object.keys(weeks).sort().reverse().slice(0,12);
- document.getElementById('dog-week-content').innerHTML = sorted.length ? sorted.map(wk=>{
- const d=weeks[wk];
- return `<div class="card"><div class="card-title"><span class="tag tag-green">${wk}</span> <span style="font-size:11px;color:#7b82a0">${d.days}日分</span></div>
- <div class="grid3">${[['家族数',d.families],['頭数合計',d.dogs],['1日平均',(d.days>0?(d.dogs/d.days).toFixed(1):0)+'頭'],['小型犬',d.small],['中型犬',d.medium],['大型犬',d.large],['新規会員',d.members]].map(([l,v])=>statBox(l,v,true)).join('')}</div></div>`;
- }).join('') : noData();
+// =================== STAFF ROWS ===================
+function buildStaffRows() {
+  const date = document.getElementById('sale-date').value;
+  const saved = (salesData[date] && salesData[date].staff) ? salesData[date].staff : {};
+  const container = document.getElementById('staff-rows');
+  container.innerHTML = staff.map(n => {
+    const r = saved[n] || {};
+    return `<div class="s-row" id="sr-${esc(n)}">
+      <div class="s-name">${n}</div>
+      ${SKEYS.map(k => `<input class="mi" type="number" min="0" value="${r[k]||0}" data-staff="${esc(n)}" data-key="${k}" oninput="updateTotals()" id="si-${esc(n)}-${k}">`).join('')}
+    </div>`;
+  }).join('');
+  updateTotals();
+  renderRates();
 }
 
-function renderDogMonth() {
- const months=dogByMonth(), sorted=Object.keys(months).sort().reverse();
- document.getElementById('dog-month-content').innerHTML = sorted.length ? sorted.map(mo=>{
- const d=months[mo], topW=Object.entries(d.wc).sort((a,b)=>b[1]-a[1])[0];
- return `<div class="card">
- <div class="month-header" style="cursor:default">
- <span>${mo} <span style="font-size:11px;color:#7b82a0">（${d.days}日）</span></span>
- ${topW?`<span style="font-size:11px;color:#3ecf8e">${topW[0]}が多かった</span>`:''}
- </div>
- <div class="grid3">${[['家族数計',d.families],['頭数計',d.dogs],['1日平均',(d.days>0?(d.dogs/d.days).toFixed(1):0)+'頭'],['小型犬',d.small],['中型犬',d.medium],['大型犬',d.large],['新規会員',d.members]].map(([l,v])=>statBox(l,v,true)).join('')}</div>
- </div>`;
- }).join('') : noData();
+function esc(s){ return s.replace(/[^a-zA-Z0-9\u3040-\u9faf]/g,'_'); }
+
+function onDateChange() {
+  loadSaleForm();
+  buildStaffRows();
 }
 
-// Tab switching
-function switchMain(tab) {
- ['sales','dog','settings'].forEach(t=>document.getElementById('section-'+t).classList.toggle('hidden',t!==tab));
- document.getElementById('main-sales').className='tab';
- document.getElementById('main-dog').className='tab';
- document.getElementById('main-settings').className='tab';
- if(tab==='sales'){document.getElementById('main-sales').className='tab active-sales';switchSub(subTab);}
- else if(tab==='dog'){document.getElementById('main-dog').className='tab active-dog';switchDogSub(dogSubTab);}
- else document.getElementById('main-settings').className='tab active-sales';
-}
-function switchSub(tab) {
- subTab=tab;
- ['input','week','month','predict'].forEach(t=>{
- document.getElementById('pane-'+t).classList.toggle('hidden',t!==tab);
- document.getElementById('sub-'+t).className=t===tab?'tab active-sales':'tab';
- });
- if(tab==='week') renderSalesWeek();
- else if(tab==='month') renderSalesMonth();
- else if(tab==='predict') renderPredict();
- else buildStaffInputRows();
-}
-function switchDogSub(tab) {
- dogSubTab=tab;
- ['input','week','month'].forEach(t=>{
- document.getElementById('dpane-'+t).classList.toggle('hidden',t!==tab);
- document.getElementById('dsub-'+t).className=t===tab?'tab active-dog':'tab';
- });
- if(tab==='week') renderDogWeek();
- else if(tab==='month') renderDogMonth();
+function loadSaleForm() {
+  const date = document.getElementById('sale-date').value;
+  const d = salesData[date];
+  const s = d && d.store ? d.store : {};
+  document.getElementById('st-visitor').value = s.visitor||0;
+  document.getElementById('st-voice').value = s.voice||0;
+  document.getElementById('st-hold').value = s.hold||0;
+  document.getElementById('st-est').value = s.est||0;
+  document.getElementById('st-contract').value = s.contract||0;
+  document.getElementById('st-review').value = s.review||0;
+  document.getElementById('st-premium').value = s.premium||0;
 }
 
-// CSV export
+function loadDogForm() {
+  const date = document.getElementById('dog-date').value;
+  const d = dogData[date] || {};
+  document.getElementById('d-fam').value = d.fam||0;
+  document.getElementById('d-dogs').value = d.dogs||0;
+  document.getElementById('d-weather').value = d.weather||'';
+  document.getElementById('d-temp').value = d.temp||0;
+  document.getElementById('d-small').value = d.small||0;
+  document.getElementById('d-mid').value = d.mid||0;
+  document.getElementById('d-large').value = d.large||0;
+  document.getElementById('d-members').value = d.members||0;
+  const reasons = d.reasons || [];
+  document.querySelectorAll('#dp-inp input[type=checkbox]').forEach(cb => {
+    cb.checked = reasons.includes(cb.value);
+  });
+}
+
+function updateTotals() {
+  const totals = {voice:0,hold:0,est:0,contract:0,review:0,premium:0,visitor:0};
+  document.querySelectorAll('.mi').forEach(el => {
+    totals[el.dataset.key] = (totals[el.dataset.key]||0) + (parseInt(el.value)||0);
+  });
+  SKEYS.forEach(k => {
+    const el = document.getElementById('t-'+k);
+    if (el) el.textContent = totals[k]||0;
+  });
+  renderRates();
+}
+
+function renderRates() {
+  const container = document.getElementById('rate-rows');
+  container.innerHTML = staff.map(n => {
+    const vals = {};
+    SKEYS.forEach(k => {
+      const el = document.getElementById(`si-${esc(n)}-${k}`);
+      vals[k] = el ? (parseInt(el.value)||0) : 0;
+    });
+    const hR = vals.voice > 0 ? (vals.hold/vals.voice*100).toFixed(1)+'%' : '-';
+    const eR = vals.hold > 0 ? (vals.est/vals.hold*100).toFixed(1)+'%' : '-';
+    const cR = vals.hold > 0 ? (vals.contract/vals.hold*100).toFixed(1)+'%' : '-';
+    const col = (v) => v==='-' ? 'var(--muted)' : '';
+    return `<div class="rate-row">
+      <div class="rate-name">${n}</div>
+      <div class="rate-items">
+        <div class="ri"><div class="rv" style="color:${col(hR)||'var(--blue)'}">${hR}</div><div class="rl">抱っこ率</div></div>
+        <div class="ri"><div class="rv" style="color:${col(eR)||'var(--orange)'}">${eR}</div><div class="rl">見積率</div></div>
+        <div class="ri"><div class="rv" style="color:${col(cR)||'var(--green)'}">${cR}</div><div class="rl">契約率</div></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// =================== SAVE ===================
+function saveSales() {
+  const date = document.getElementById('sale-date').value;
+  if (!date) { alert('日付を選択してください'); return; }
+  const store = {
+    visitor: parseInt(document.getElementById('st-visitor').value)||0,
+    voice: parseInt(document.getElementById('st-voice').value)||0,
+    hold: parseInt(document.getElementById('st-hold').value)||0,
+    est: parseInt(document.getElementById('st-est').value)||0,
+    contract: parseInt(document.getElementById('st-contract').value)||0,
+    review: parseInt(document.getElementById('st-review').value)||0,
+    premium: parseInt(document.getElementById('st-premium').value)||0,
+  };
+  const staffObj = {};
+  staff.forEach(n => {
+    const r = {};
+    SKEYS.forEach(k => {
+      const el = document.getElementById(`si-${esc(n)}-${k}`);
+      r[k] = el ? (parseInt(el.value)||0) : 0;
+    });
+    staffObj[n] = r;
+  });
+  salesData[date] = { store, staff: staffObj };
+  localStorage.setItem('ps_sales', JSON.stringify(salesData));
+  alert(`${date} のデータを保存しました！`);
+}
+
+function saveDog() {
+  const date = document.getElementById('dog-date').value;
+  if (!date) { alert('日付を選択してください'); return; }
+  const reasons = [];
+  document.querySelectorAll('#dp-inp input[type=checkbox]:checked').forEach(cb => reasons.push(cb.value));
+  dogData[date] = {
+    fam: parseInt(document.getElementById('d-fam').value)||0,
+    dogs: parseInt(document.getElementById('d-dogs').value)||0,
+    weather: document.getElementById('d-weather').value,
+    temp: parseFloat(document.getElementById('d-temp').value)||0,
+    small: parseInt(document.getElementById('d-small').value)||0,
+    mid: parseInt(document.getElementById('d-mid').value)||0,
+    large: parseInt(document.getElementById('d-large').value)||0,
+    members: parseInt(document.getElementById('d-members').value)||0,
+    reasons,
+  };
+  localStorage.setItem('ps_dog', JSON.stringify(dogData));
+  alert(`${date} のデータを保存しました！`);
+}
+
+function saveStaff() {
+  const lines = document.getElementById('cfg-staff').value.split('\n').map(s=>s.trim()).filter(Boolean);
+  staff = lines;
+  localStorage.setItem('ps_staff', JSON.stringify(staff));
+  alert('スタッフを保存しました');
+}
+
+function clearAll() {
+  if (!confirm('全データをリセットしますか？元に戻せません。')) return;
+  salesData = {}; dogData = {};
+  localStorage.removeItem('ps_sales');
+  localStorage.removeItem('ps_dog');
+  alert('リセットしました');
+}
+
+// =================== SALES HISTORY ===================
+function renderSalesHist() {
+  const entries = Object.entries(salesData).sort(([a],[b]) => b.localeCompare(a)).slice(0,10);
+  const el = document.getElementById('hist-content');
+  if (!entries.length) { el.innerHTML = noData(); return; }
+  el.innerHTML = entries.map(([date, v]) => {
+    const s = v.store || {};
+    return `<div class="hist-row">
+      <div class="hist-date">${date}</div>
+      <div class="hist-vals">
+        <div class="hv">抱っこ <span>${s.hold||0}</span></div>
+        <div class="hv">見積 <span>${s.est||0}</span></div>
+        <div class="hv">プレミアム <span>${s.premium||0}</span></div>
+        <div class="hv">契約 <span>${s.contract||0}</span></div>
+        <div class="hv">声かけ <span>${s.voice||0}</span></div>
+        <div class="hv">来客 <span>${s.visitor||0}</span></div>
+        <div class="hv">口コミ <span>${s.review||0}</span></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// =================== SALES MONTH ===================
+function renderSalesMo() {
+  const mo = {};
+  Object.entries(salesData).forEach(([date, v]) => {
+    const m = date.slice(0,7);
+    if (!mo[m]) mo[m] = {visitor:0,voice:0,hold:0,est:0,contract:0,review:0,premium:0,days:0};
+    const s = v.store || {};
+    Object.keys(mo[m]).forEach(k => { if (k!=='days') mo[m][k] += s[k]||0; });
+    mo[m].days++;
+  });
+  const sorted = Object.keys(mo).sort().reverse();
+  const el = document.getElementById('mo-content');
+  if (!sorted.length) { el.innerHTML = noData(); return; }
+  el.innerHTML = sorted.map(m => {
+    const d = mo[m];
+    const hR = d.voice > 0 ? (d.hold/d.voice*100).toFixed(1)+'%' : '-';
+    const cR = d.hold > 0 ? (d.contract/d.hold*100).toFixed(1)+'%' : '-';
+    return `<div class="card">
+      <div class="mo-hdr">${m} <span style="font-size:10px;color:var(--muted)">${d.days}日</span></div>
+      <div class="g3">
+        ${sb('来客',d.visitor)}${sb('声かけ',d.voice)}${sb('抱っこ',d.hold)}
+        ${sb('見積',d.est)}${sb('契約',d.contract,true)}${sb('口コミ',d.review)}
+        ${sb('プレミ',d.premium)}${sb('抱っこ率',hR)}${sb('契約率',cR,true)}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// =================== PREDICT ===================
+function renderPred() {
+  const entries = Object.entries(salesData).sort(([a],[b])=>b.localeCompare(a)).slice(0,14);
+  const el = document.getElementById('pred-content');
+  if (!entries.length) { el.innerHTML = noData(); return; }
+  const days = entries.length;
+  const tot = {visitor:0,voice:0,hold:0,est:0,contract:0,review:0,premium:0};
+  entries.forEach(([,v]) => { const s=v.store||{}; Object.keys(tot).forEach(k=>tot[k]+=(s[k]||0)); });
+  const pred = {}; Object.keys(tot).forEach(k => pred[k] = Math.round(tot[k]/days*14));
+  const hR = tot.voice>0 ? (tot.hold/tot.voice*100).toFixed(1) : 0;
+  const cR = tot.hold>0 ? (tot.contract/tot.hold*100).toFixed(1) : 0;
+  el.innerHTML = `
+    <div class="alert">直近${days}日のデータをもとに算出しています</div>
+    <div class="pred-box">
+      <div class="pred-title">🔮 2週間後の予測契約数</div>
+      <div class="pred-val">${pred.contract}件</div>
+      <div class="pred-sub">声かけ→抱っこ率 ${hR}% ／ 抱っこ→契約率 ${cR}%</div>
+    </div>
+    <div class="card">
+      <div class="card-title">📊 2週間後の予測値</div>
+      <div class="g2">
+        ${sb('来客数',pred.visitor)}${sb('声かけ数',pred.voice)}
+        ${sb('抱っこ数',pred.hold)}${sb('見積り配布',pred.est)}
+        ${sb('口コミ数',pred.review)}${sb('プレミアム',pred.premium)}
+      </div>
+    </div>`;
+}
+
+// =================== DOG HISTORY ===================
+function renderDogHist() {
+  const entries = Object.entries(dogData).sort(([a],[b])=>b.localeCompare(a)).slice(0,10);
+  const el = document.getElementById('dhist-content');
+  if (!entries.length) { el.innerHTML = noData(); return; }
+  el.innerHTML = entries.map(([date, d]) => {
+    const rs = d.reasons && d.reasons.length ? d.reasons.join('・') : '-';
+    return `<div class="hist-row">
+      <div class="hist-date">${date} ${d.weather ? `<span class="tag tag-b" style="margin-left:6px">${d.weather} ${d.temp}℃</span>` : ''}</div>
+      <div class="hist-vals">
+        <div class="hv">家族数 <span>${d.fam||0}</span></div>
+        <div class="hv">頭数 <span>${d.dogs||0}</span></div>
+        <div class="hv">小型 <span>${d.small||0}</span></div>
+        <div class="hv">中型 <span>${d.mid||0}</span></div>
+        <div class="hv">大型 <span>${d.large||0}</span></div>
+        <div class="hv">新規 <span>${d.members||0}</span></div>
+      </div>
+      ${d.reasons && d.reasons.length ? `<div style="margin-top:6px;font-size:10px;color:var(--muted)">理由: ${rs}</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+// =================== DOG MONTH ===================
+function renderDogMo() {
+  const mo = {};
+  Object.entries(dogData).forEach(([date, d]) => {
+    const m = date.slice(0,7);
+    if (!mo[m]) mo[m] = {fam:0,dogs:0,small:0,mid:0,large:0,members:0,days:0,reasons:{}};
+    mo[m].fam += d.fam||0; mo[m].dogs += d.dogs||0;
+    mo[m].small += d.small||0; mo[m].mid += d.mid||0; mo[m].large += d.large||0;
+    mo[m].members += d.members||0; mo[m].days++;
+    (d.reasons||[]).forEach(r => { mo[m].reasons[r] = (mo[m].reasons[r]||0)+1; });
+  });
+  const sorted = Object.keys(mo).sort().reverse();
+  const el = document.getElementById('dmo-content');
+  if (!sorted.length) { el.innerHTML = noData(); return; }
+  el.innerHTML = sorted.map(m => {
+    const d = mo[m];
+    const avg = d.days > 0 ? (d.dogs/d.days).toFixed(1) : 0;
+    const topR = Object.entries(d.reasons).sort((a,b)=>b[1]-a[1])[0];
+    return `<div class="card">
+      <div class="mo-hdr">${m} <span style="font-size:10px;color:var(--muted)">${d.days}日</span>
+        ${topR ? `<span class="tag tag-g" style="font-size:9px">${topR[0]}が多い</span>` : ''}
+      </div>
+      <div class="g3">
+        ${sb('家族数計',d.fam,true)}${sb('頭数計',d.dogs,true)}${sb('1日平均',avg+'頭',true)}
+        ${sb('小型犬',d.small,true)}${sb('中型犬',d.mid,true)}${sb('大型犬',d.large,true)}
+        ${sb('新規会員',d.members,true)}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// =================== HELPERS ===================
+function sb(label, val, green=false) {
+  return `<div class="stat-box"><div class="stat-val${green?' g':''}">${val}</div><div class="stat-lbl">${label}</div></div>`;
+}
+function noData() {
+  return `<div style="text-align:center;padding:40px 20px;color:var(--muted);font-size:13px">データがありません<br><span style="font-size:11px">入力タブからデータを追加してください</span></div>`;
+}
+function pct(a,b) { return b>0 ? (a/b*100).toFixed(1)+'%' : '-'; }
+
+// =================== CSV ===================
 function exportSalesCSV() {
- const rows=[['日付','来客数','声かけ数','抱っこ数','見積り配布','契約数','口コミ数','プレミアム']];
- Object.entries(salesData).sort().forEach(([d,v])=>{
- const s=v.store||{}; rows.push([d,s.visitor||0,s.voiceAll||0,s.holdAll||0,s.estimate||0,s.contract||0,s.review||0,s.premium||0]);
- }); dlCSV(rows,'sales_data.csv');
+  const rows = [['日付','来客数','声かけ数','抱っこ数','見積り配布','契約数','口コミ数','プレミアム']];
+  Object.entries(salesData).sort().forEach(([d,v]) => {
+    const s = v.store||{};
+    rows.push([d,s.visitor||0,s.voice||0,s.hold||0,s.est||0,s.contract||0,s.review||0,s.premium||0]);
+  });
+  dlCSV(rows,'sales_data.csv');
 }
 function exportDogCSV() {
- const rows=[['日付','家族数','頭数','天気','気温','小型犬','中型犬','大型犬','新規会員']];
- Object.entries(dogData).sort().forEach(([d,v])=>{
- rows.push([d,v.families||0,v.dogs||0,v.weather||'',v.temp||0,v.small||0,v.medium||0,v.large||0,v.members||0]);
- }); dlCSV(rows,'dogrun_data.csv');
+  const rows = [['日付','家族数','頭数','天気','気温','小型犬','中型犬','大型犬','新規会員','理由']];
+  Object.entries(dogData).sort().forEach(([d,v]) => {
+    rows.push([d,v.fam||0,v.dogs||0,v.weather||'',v.temp||0,v.small||0,v.mid||0,v.large||0,v.members||0,(v.reasons||[]).join('/')]);
+  });
+  dlCSV(rows,'dogrun_data.csv');
 }
-function dlCSV(rows,fname) {
- const a=document.createElement('a');
- a.href='data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(rows.map(r=>r.join(',')).join('\n'));
- a.download=fname; a.click();
+function dlCSV(rows, fname) {
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,\uFEFF' + encodeURIComponent(rows.map(r=>r.join(',')).join('\n'));
+  a.download = fname; a.click();
 }
 
 window.addEventListener('DOMContentLoaded', init);
